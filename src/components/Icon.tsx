@@ -46,6 +46,9 @@ const PATHS = {
     </>
   ),
   arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
+  compare: <path d="M8 3 4 7l4 4M4 7h12M16 21l4-4-4-4M20 17H8" />,
+  filter: <path d="M3 5h18l-7 8v6l-4 2v-8z" />,
+  download: <path d="M12 3v12M7 10l5 5 5-5M4 21h16" />,
   plus: <path d="M12 5v14M5 12h14" />,
   logout: <path d="M9 21H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4M16 17l5-5-5-5M21 12H9" />,
   factory: <path d="M2 21h20M4 21V9l6 4V9l6 4V4h4v17" />,

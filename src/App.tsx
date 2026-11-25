@@ -13,6 +13,7 @@ import SamplesPage from './features/samples/SamplesPage'
 import SampleDetailPage from './features/samples/SampleDetailPage'
 import SampleFormPage from './features/samples/SampleFormPage'
 import AssistantPage from './features/assistant/AssistantPage'
+import ComparePage from './features/compare/ComparePage'
 import AccessPage from './features/access/AccessPage'
 
 function NoAccessScreen() {
@@ -70,6 +71,7 @@ export default function App() {
         <Route path="/samples/new" element={<SampleFormPage />} />
         <Route path="/samples/:id" element={<SampleDetailPage />} />
         <Route path="/samples/:id/edit" element={<SampleFormPage />} />
+        <Route path="/compare" element={<ComparePage />} />
         <Route path="/assistant" element={<AssistantPage />} />
         <Route path="/access" element={<AccessPage />} />
       </Route>

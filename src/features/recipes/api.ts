@@ -7,12 +7,12 @@ import type {
   RecipeWithIngredients,
 } from '../../types/db'
 
-export type RecipeListItem = Recipe & { ingredients: Pick<RecipeIngredient, 'id'>[] }
+export type RecipeListItem = Recipe & { ingredients: Pick<RecipeIngredient, 'id' | 'material'>[] }
 
 export async function listRecipes(): Promise<RecipeListItem[]> {
   const { data, error } = await supabase
     .from('lab_recipes')
-    .select('*, ingredients:lab_recipe_ingredients(id)')
+    .select('*, ingredients:lab_recipe_ingredients(id,material)')
     .eq('is_active', true)
     .order('code')
   if (error) throw error

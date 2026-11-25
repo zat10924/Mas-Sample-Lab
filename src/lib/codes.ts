@@ -78,3 +78,21 @@ export function nextRecipeCode(type: RecipeType, existingCodes: string[]): strin
   }
   return `${prefix}-${String(max + 1).padStart(3, '0')}`
 }
+
+export interface ParsedResultCode {
+  finish: Finish
+  color: ColorMatch
+  defects: string[]
+}
+
+/** يفكّ كود النتيجة (مثال M2-PC) لأجزائه، أو null لو غير صالح */
+export function parseResultCode(code: string | null): ParsedResultCode | null {
+  if (!code) return null
+  const m = /^([GSM])([123])-(0|[PCRB]+)$/.exec(code)
+  if (!m) return null
+  return {
+    finish: m[1] as Finish,
+    color: Number(m[2]) as ColorMatch,
+    defects: m[3] === '0' ? [] : m[3].split(''),
+  }
+}

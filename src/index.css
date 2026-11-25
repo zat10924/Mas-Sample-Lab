@@ -130,6 +130,9 @@
     border-color: var(--gold);
     transform: translateY(-1px);
   }
+  .row-diff {
+    background: color-mix(in srgb, var(--gold) 14%, transparent);
+  }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -138,5 +141,24 @@
     background: linear-gradient(135deg, var(--hd1), var(--hd2));
     border-bottom: 2px solid var(--gold);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  }
+}
+
+/* طباعة / حفظ PDF: نخفي القوائم والأزرار */
+@media print {
+  aside,
+  header.topbar,
+  nav.safe-bottom {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .card {
+    box-shadow: none !important;
+    break-inside: avoid;
   }
 }
