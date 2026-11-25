@@ -25,6 +25,9 @@ jobs:
         
       - run: npm install
       - run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://bzhxdikcyxkdojwlswhq.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_NDJle8iKFHVTezQ_CTjeqg_Usd42lkZ
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
