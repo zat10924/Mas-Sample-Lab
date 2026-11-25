@@ -230,12 +230,14 @@ export default function ComparePage() {
   const ready = !!a && !!b && a !== b
   const detailA = useQuery({
     queryKey: [kind === 'recipes' ? 'recipe' : 'sample', a],
-    queryFn: () => (kind === 'recipes' ? getRecipe(a) : getSample(a)),
+    queryFn: async (): Promise<RecipeWithIngredients | SampleDetail> =>
+      kind === 'recipes' ? await getRecipe(a) : await getSample(a),
     enabled: ready,
   })
   const detailB = useQuery({
     queryKey: [kind === 'recipes' ? 'recipe' : 'sample', b],
-    queryFn: () => (kind === 'recipes' ? getRecipe(b) : getSample(b)),
+    queryFn: async (): Promise<RecipeWithIngredients | SampleDetail> =>
+      kind === 'recipes' ? await getRecipe(b) : await getSample(b),
     enabled: ready,
   })
 
