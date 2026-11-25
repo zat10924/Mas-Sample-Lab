@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== هوية MAS: نفس متغيرات برنامج المصنع (مارون + ذهبي) ===== */
+:root {
+  --bg: #f7f5f1;
+  --card: #ffffff;
+  --ink: #34343a;
+  --mute: #6b6a70;
+  --faint: #9a989d;
+  --line: #e9e7e4;
+  --tint: #f1eee9;
+  --pri: #642631;
+  --pri-d: #421b24;
+  --b50: #f9eef0;
+  --b100: #f1dce0;
+  --b600: #7d2f3e;
+  --b900: #421b24;
+  --gold: #b8862b;
+  --gold-l: #d9b45f;
+  --hd1: #642631;
+  --hd2: #421b24;
+  --sh: 0 1px 2px rgba(20, 40, 40, 0.06), 0 4px 14px rgba(20, 40, 40, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1a1214;
+    --card: #251a1d;
+    --ink: #f1ebe6;
+    --mute: #b3a6a8;
+    --faint: #857a7c;
+    --line: #3a2a2e;
+    --tint: #2f2226;
+    --pri: #c0556a;
+    --pri-d: #d36d82;
+    --b50: #3a2229;
+    --b100: #4a2a33;
+    --b600: #d36d82;
+    --b900: #f3d5db;
+    --gold: #d9b45f;
+    --gold-l: #e8c97f;
+    --hd1: #421b24;
+    --hd2: #2c1218;
+    --sh: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.25);
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #1a1214;
+  --card: #251a1d;
+  --ink: #f1ebe6;
+  --mute: #b3a6a8;
+  --faint: #857a7c;
+  --line: #3a2a2e;
+  --tint: #2f2226;
+  --pri: #c0556a;
+  --pri-d: #d36d82;
+  --b50: #3a2229;
+  --b100: #4a2a33;
+  --b600: #d36d82;
+  --b900: #f3d5db;
+  --gold: #d9b45f;
+  --gold-l: #e8c97f;
+  --hd1: #421b24;
+  --hd2: #2c1218;
+  --sh: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-page font-sans text-ink antialiased;
+    min-height: 100dvh;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-700 text-white hover:bg-brand-800;
+  }
+  .btn-secondary {
+    @apply btn border border-line bg-surface text-ink hover:bg-tint;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-ghost {
+    @apply btn text-mute hover:bg-tint;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-base text-ink placeholder:text-faint focus:outline-none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input:focus {
+    border-color: var(--pri);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pri) 22%, transparent);
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-mute;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-surface p-4;
+    box-shadow: var(--sh);
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* الشريط العلوي: تدرج مارون زي برنامج المصنع + خط ذهبي رفيع */
+  .topbar {
+    background: linear-gradient(135deg, var(--hd1), var(--hd2));
+    border-bottom: 2px solid var(--gold);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  }
+}

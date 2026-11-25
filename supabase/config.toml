@@ -1,0 +1,4 @@
+project_id = "bzhxdikcyxkdojwlswhq"
+
+[functions.lab-ai]
+verify_jwt = true
