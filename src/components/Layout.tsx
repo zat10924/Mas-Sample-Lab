@@ -3,22 +3,23 @@ import { useAuth } from '../features/auth/AuthProvider'
 import { MAIN_APP_URL } from '../lib/mainApp'
 import { ROLE_AR, toggleTheme } from '../lib/roles'
 import icon from '../assets/icon-192.png'
+import { Icon, type IconName } from './Icon'
 
 interface NavItem {
   to: string
   label: string
-  icon: string
+  icon: IconName
   end: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: 'الرئيسية', icon: '🏠', end: true },
-  { to: '/recipes', label: 'التركيبات', icon: '🧪', end: false },
-  { to: '/samples', label: 'العينات', icon: '🏺', end: false },
-  { to: '/assistant', label: 'المساعد', icon: '✨', end: false },
+  { to: '/', label: 'الرئيسية', icon: 'home', end: true },
+  { to: '/recipes', label: 'التركيبات', icon: 'flask', end: false },
+  { to: '/samples', label: 'العينات', icon: 'vase', end: false },
+  { to: '/assistant', label: 'المساعد', icon: 'sparkles', end: false },
 ]
 
-const ACCESS_ITEM: NavItem = { to: '/access', label: 'الصلاحيات', icon: '🔑', end: false }
+const ACCESS_ITEM: NavItem = { to: '/access', label: 'الصلاحيات', icon: 'key', end: false }
 
 export default function Layout() {
   const { me, isAdmin, canWrite, signOut } = useAuth()
@@ -42,23 +43,27 @@ export default function Layout() {
           <span className="flex-1" />
           <a
             href={MAIN_APP_URL}
-            className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25"
           >
-            برنامج المصنع
+            <Icon name="factory" size={14} />
+            <span className="hidden sm:inline">برنامج المصنع</span>
+            <span className="sm:hidden">المصنع</span>
           </a>
           <button
             type="button"
             onClick={toggleTheme}
             aria-label="تبديل الوضع الليلي"
-            className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 text-sm hover:bg-white/25"
+            className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 hover:bg-white/25"
           >
-            🌓
+            <Icon name="contrast" size={16} />
           </button>
           <button
             type="button"
             onClick={() => void signOut()}
-            className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25"
+            aria-label="خروج"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25"
           >
+            <Icon name="logout" size={14} />
             خروج
           </button>
         </div>
@@ -86,7 +91,13 @@ export default function Layout() {
                   {isActive && (
                     <span className="absolute top-0 h-[3px] w-8 rounded-b bg-gold" aria-hidden="true" />
                   )}
-                  <span className="text-xl leading-none">{item.icon}</span>
+                  <span
+                    className={`grid h-7 w-12 place-items-center rounded-full transition-colors ${
+                      isActive ? 'bg-brand-50' : ''
+                    }`}
+                  >
+                    <Icon name={item.icon} size={21} strokeWidth={isActive ? 2.1 : 1.8} />
+                  </span>
                   {item.label}
                 </>
               )}

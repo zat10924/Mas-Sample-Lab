@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRecipe, listRecipes, saveRecipe, type IngredientInput } from './api'
 import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, Field, PageTitle, Spinner } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 import { nextRecipeCode, RECIPE_TYPE_LABELS } from '../../lib/codes'
 import { parseNumber } from '../../lib/units'
 import type { RecipeBasis, RecipeType } from '../../types/db'
@@ -264,7 +265,8 @@ export default function RecipeFormPage() {
           </div>
         ))}
         <button type="button" className="btn-secondary w-full" onClick={() => setRows((p) => [...p, newRow()])}>
-          + مكوّن
+          <Icon name="plus" size={16} />
+          مكوّن
         </button>
       </div>
 

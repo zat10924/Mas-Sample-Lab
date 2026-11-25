@@ -5,6 +5,7 @@ import { deleteRecipe, getRecipe } from './api'
 import AmountsTable from './AmountsTable'
 import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, PageTitle, Spinner } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 import { RECIPE_TYPE_LABELS } from '../../lib/codes'
 import { formatGrams, formatNumber, ingredientGrams, parseNumber } from '../../lib/units'
 
@@ -141,7 +142,8 @@ export default function RecipeDetailPage() {
 
       {canWrite && (
         <Link to={`/samples/new?recipe=${recipe.id}`} className="btn-primary w-full">
-          + سجّل عينة بالتركيبة دي
+          <Icon name="plus" size={16} />
+          سجّل عينة بالتركيبة دي
         </Link>
       )}
 

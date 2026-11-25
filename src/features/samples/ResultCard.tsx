@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { analyzeResult, deleteResult, getSignedUrl, saveReview } from './api'
 import { ErrorBox } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 import {
   buildResultCode,
   COLOR_OPTIONS,
@@ -99,7 +100,10 @@ export default function ResultCard({
       {ai ? (
         <div className="space-y-1 rounded-xl border border-violet-200 bg-violet-50 p-3 text-sm">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-violet-900">✨ تحليل الذكاء الاصطناعي (اقتراح فقط)</span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-violet-900">
+              <Icon name="sparkles" size={16} />
+              تحليل الذكاء الاصطناعي (اقتراح فقط)
+            </span>
             {result.ai_suggested_code && (
               <span dir="ltr" className="badge bg-violet-200 text-violet-900">
                 {result.ai_suggested_code}
@@ -125,7 +129,14 @@ export default function ResultCard({
             disabled={analyze.isPending}
             onClick={() => analyze.mutate()}
           >
-            {analyze.isPending ? 'جاري التحليل... (ممكن ياخد 10-20 ثانية)' : '✨ حلل الصورة بالذكاء الاصطناعي'}
+            {analyze.isPending ? (
+              'جاري التحليل... (ممكن ياخد 10-20 ثانية)'
+            ) : (
+              <>
+                <Icon name="sparkles" size={18} />
+                حلل الصورة بالذكاء الاصطناعي
+              </>
+            )}
           </button>
         )
       )}

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { MAIN_APP_URL } from '../../lib/mainApp'
+import { Icon } from '../../components/Icon'
 import { useAuth } from './AuthProvider'
 import { errorMessage } from '../../components/ui'
 import logo from '../../assets/logo-login.png'
@@ -101,8 +102,12 @@ export default function LoginPage() {
             {busy ? 'لحظة...' : 'دخول'}
           </button>
 
-          <a href={MAIN_APP_URL} className="block text-center text-sm font-bold text-brand-700">
-            ← الرجوع لبرنامج المصنع
+          <a
+            href={MAIN_APP_URL}
+            className="flex items-center justify-center gap-1.5 text-sm font-bold text-brand-700"
+          >
+            <Icon name="arrowRight" size={16} />
+            الرجوع لبرنامج المصنع
           </a>
         </form>
 

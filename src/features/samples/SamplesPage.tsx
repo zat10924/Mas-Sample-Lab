@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { listSamples } from './api'
 import { useAuth } from '../auth/AuthProvider'
 import { Empty, ErrorBox, PageTitle, Spinner, StatusBadge, STATUS_LABELS } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 import type { SampleStatus } from '../../types/db'
 
 type Filter = 'all' | SampleStatus
@@ -43,7 +44,8 @@ export default function SamplesPage() {
         action={
           canWrite ? (
             <Link to="/samples/new" className="btn-primary">
-              + عينة
+              <Icon name="plus" size={16} />
+              عينة
             </Link>
           ) : undefined
         }

@@ -3,6 +3,7 @@ import { useAuth } from './features/auth/AuthProvider'
 import LoginPage from './features/auth/LoginPage'
 import Layout from './components/Layout'
 import { Spinner } from './components/ui'
+import { Icon } from './components/Icon'
 import { MAIN_APP_URL } from './lib/mainApp'
 import DashboardPage from './features/dashboard/DashboardPage'
 import RecipesPage from './features/recipes/RecipesPage'
@@ -22,7 +23,9 @@ function NoAccessScreen() {
       style={{ background: 'linear-gradient(160deg, var(--hd1), var(--hd2))' }}
     >
       <div className="card w-full max-w-sm space-y-4 text-center">
-        <div className="text-4xl">🔒</div>
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-50 text-brand-700">
+          <Icon name="lock" size={26} />
+        </div>
         <h1 className="text-lg font-extrabold">مفيش صلاحية لدخول المختبر</h1>
         <p className="text-sm text-mute">
           {me?.name ? `${me.name}، ` : ''}
@@ -36,8 +39,9 @@ function NoAccessScreen() {
             خروج
           </button>
         </div>
-        <a href={MAIN_APP_URL} className="block text-sm font-bold text-brand-700">
-          ← الرجوع لبرنامج المصنع
+        <a href={MAIN_APP_URL} className="inline-flex items-center justify-center gap-1.5 text-sm font-bold text-brand-700">
+          <Icon name="arrowRight" size={16} />
+          الرجوع لبرنامج المصنع
         </a>
       </div>
     </div>

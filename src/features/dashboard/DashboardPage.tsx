@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { listSamples } from '../samples/api'
 import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, PageTitle, Spinner, StatusBadge } from '../../components/ui'
+import { Icon, type IconName } from '../../components/Icon'
 
 async function countRows(table: 'lab_recipes' | 'lab_samples', status?: string): Promise<number> {
   let query = supabase.from(table).select('*', { count: 'exact', head: true })
@@ -24,10 +25,21 @@ async function loadStats() {
   return { recipes, samples, planned, fired, reviewed }
 }
 
-function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
+function Stat({
+  label,
+  value,
+  tone,
+  icon,
+}: {
+  label: string
+  value: number
+  tone: string
+  icon: IconName
+}) {
   return (
-    <div className={`rounded-2xl p-4 ${tone}`}>
-      <div className="text-3xl font-bold">{value}</div>
+    <div className={`relative overflow-hidden rounded-2xl p-4 ${tone}`}>
+      <Icon name={icon} size={20} className="absolute end-3 top-3 opacity-60" />
+      <div className="text-3xl font-extrabold tabular-nums">{value}</div>
       <div className="mt-1 text-sm font-medium opacity-80">{label}</div>
     </div>
   )
@@ -49,20 +61,22 @@ export default function DashboardPage() {
       {stats.error && <ErrorBox error={stats.error} />}
       {stats.data && (
         <div className="grid grid-cols-2 gap-3">
-          <Stat label="تركيبة" value={stats.data.recipes} tone="bg-brand-50 text-brand-900" />
-          <Stat label="عينة" value={stats.data.samples} tone="bg-sky-50 text-sky-900" />
-          <Stat label="مخططة" value={stats.data.planned} tone="bg-tint text-ink" />
-          <Stat label="محروقة (محتاجة تقييم)" value={stats.data.fired} tone="bg-amber-50 text-amber-900" />
+          <Stat label="تركيبة" value={stats.data.recipes} tone="bg-brand-50 text-brand-900" icon="flask" />
+          <Stat label="عينة" value={stats.data.samples} tone="bg-sky-50 text-sky-900" icon="vase" />
+          <Stat label="مخططة" value={stats.data.planned} tone="bg-tint text-ink" icon="clock" />
+          <Stat label="محروقة (محتاجة تقييم)" value={stats.data.fired} tone="bg-amber-50 text-amber-900" icon="flame" />
         </div>
       )}
 
       {canWrite && (
         <div className="grid grid-cols-2 gap-3">
           <Link to="/samples/new" className="btn-primary">
-            + عينة جديدة
+            <Icon name="plus" size={16} />
+            عينة جديدة
           </Link>
           <Link to="/recipes/new" className="btn-secondary">
-            + تركيبة جديدة
+            <Icon name="plus" size={16} />
+            تركيبة جديدة
           </Link>
         </div>
       )}

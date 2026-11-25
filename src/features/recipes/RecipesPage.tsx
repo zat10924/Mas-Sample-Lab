@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { listRecipes } from './api'
 import { useAuth } from '../auth/AuthProvider'
 import { Empty, ErrorBox, PageTitle, Spinner } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 import { RECIPE_TYPE_LABELS } from '../../lib/codes'
 
 type Filter = 'all' | 'glaze_color' | 'matte_white'
@@ -38,7 +39,8 @@ export default function RecipesPage() {
         action={
           canWrite ? (
             <Link to="/recipes/new" className="btn-primary">
-              + تركيبة
+              <Icon name="plus" size={16} />
+              تركيبة
             </Link>
           ) : undefined
         }

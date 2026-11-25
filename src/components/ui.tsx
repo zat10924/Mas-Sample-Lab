@@ -68,10 +68,10 @@ export function Field({
   )
 }
 
-const STATUS_STYLES: Record<SampleStatus, { label: string; className: string }> = {
-  planned: { label: 'مخططة', className: 'bg-tint text-ink' },
-  fired: { label: 'محروقة', className: 'bg-amber-100 text-amber-800' },
-  reviewed: { label: 'تم التقييم', className: 'bg-emerald-100 text-emerald-800' },
+const STATUS_STYLES: Record<SampleStatus, { label: string; className: string; dot: string }> = {
+  planned: { label: 'مخططة', className: 'bg-tint text-ink', dot: 'bg-faint' },
+  fired: { label: 'محروقة', className: 'bg-amber-100 text-amber-800', dot: 'bg-amber-500' },
+  reviewed: { label: 'تم التقييم', className: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-500' },
 }
 
 export const STATUS_LABELS: Record<SampleStatus, string> = {
@@ -82,5 +82,10 @@ export const STATUS_LABELS: Record<SampleStatus, string> = {
 
 export function StatusBadge({ status }: { status: SampleStatus }) {
   const s = STATUS_STYLES[status]
-  return <span className={`badge ${s.className}`}>{s.label}</span>
+  return (
+    <span className={`badge gap-1.5 ${s.className}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} aria-hidden="true" />
+      {s.label}
+    </span>
+  )
 }

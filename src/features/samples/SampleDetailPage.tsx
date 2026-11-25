@@ -7,6 +7,7 @@ import AmountsTable from '../recipes/AmountsTable'
 import { getRecipe } from '../recipes/api'
 import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, PageTitle, Spinner, StatusBadge, STATUS_LABELS } from '../../components/ui'
+import { Icon } from '../../components/Icon'
 import type { SampleStatus } from '../../types/db'
 
 export default function SampleDetailPage() {
@@ -125,7 +126,14 @@ export default function SampleDetailPage() {
               disabled={upload.isPending}
               onClick={() => fileInput.current?.click()}
             >
-              {upload.isPending ? 'جاري رفع الصورة...' : '📷 أضف صورة العينة بعد الحرق'}
+              {upload.isPending ? (
+                'جاري رفع الصورة...'
+              ) : (
+                <>
+                  <Icon name="camera" size={18} />
+                  أضف صورة العينة بعد الحرق
+                </>
+              )}
             </button>
             {upload.error && <ErrorBox error={upload.error} />}
           </>
