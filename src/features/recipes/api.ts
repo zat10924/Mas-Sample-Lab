@@ -92,12 +92,32 @@ export async function saveRecipe(
   return recipeId as string
 }
 
+/** التركيبة عليها عينات مسجلة فمش ممكن تتحذف (ممكن تتأرشف بدل كده) */
+export class RecipeInUseError extends Error {
+  constructor() {
+    super('مش ممكن تحذف التركيبة لأن فيه عينات مسجلة عليها')
+  }
+}
+
 export async function deleteRecipe(id: string): Promise<void> {
-  const { error } = await supabase.from('lab_recipes').delete().eq('id', id)
+  // select() بيرجّع الصفوف اللي اتحذفت فعلًا، فنعرف لو الحذف اتمنع بصمت بسبب الصلاحيات
+  const { data, error } = await supabase.from('lab_recipes').delete().eq('id', id).select('id')
   if (error) {
-    if (error.code === '23503') {
-      throw new Error('مش ممكن تحذف التركيبة لأن فيه عينات مسجلة عليها')
-    }
+    if (error.code === '23503') throw new RecipeInUseError()
     throw error
   }
+  if (!data || data.length === 0) {
+    throw new Error('الحذف مرفوض: محتاج صلاحية مدير بتعديل في المختبر')
+  }
+}
+
+/** إخفاء التركيبة من المكتبة من غير حذفها (العينات القديمة تفضل مرتبطة بيها) */
+export async function archiveRecipe(id: string): Promise<void> {
+  const { data, error } = await supabase
+    .from('lab_recipes')
+    .update({ is_active: false })
+    .eq('id', id)
+    .select('id')
+  if (error) throw error
+  if (!data || data.length === 0) throw new Error('مفيش صلاحية لأرشفة التركيبة')
 }

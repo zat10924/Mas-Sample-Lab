@@ -60,7 +60,7 @@ export default function DashboardPage() {
       {stats.isLoading && <Spinner />}
       {stats.error && <ErrorBox error={stats.error} />}
       {stats.data && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <Stat label="تركيبة" value={stats.data.recipes} tone="bg-brand-50 text-brand-900" icon="flask" />
           <Stat label="عينة" value={stats.data.samples} tone="bg-sky-50 text-sky-900" icon="vase" />
           <Stat label="مخططة" value={stats.data.planned} tone="bg-tint text-ink" icon="clock" />
@@ -69,7 +69,7 @@ export default function DashboardPage() {
       )}
 
       {canWrite && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:max-w-lg">
           <Link to="/samples/new" className="btn-primary">
             <Icon name="plus" size={16} />
             عينة جديدة
@@ -93,9 +93,9 @@ export default function DashboardPage() {
         {samples.data && samples.data.length === 0 && (
           <div className="card py-8 text-center text-sm text-mute">لسه مفيش عينات</div>
         )}
-        <div className="space-y-2">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {(samples.data ?? []).slice(0, 5).map((s) => (
-            <Link key={s.id} to={`/samples/${s.id}`} className="card flex items-center justify-between gap-2">
+            <Link key={s.id} to={`/samples/${s.id}`} className="card-link flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div dir="ltr" className="text-start font-bold">
                   {s.code}

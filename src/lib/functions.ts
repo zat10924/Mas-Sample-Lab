@@ -2,9 +2,7 @@ import { supabase } from './supabase'
 
 /** استدعاء Edge Function مع إظهار رسالة الخطأ الحقيقية القادمة من الدالة */
 export async function callFunction<T>(name: string, body: unknown): Promise<T> {
-const { data, error } = await supabase.functions.invoke(name, {
-  body: body as Record<string, unknown>,
-})
+  const { data, error } = await supabase.functions.invoke(name, { body })
   if (error) {
     let message = error.message
     const ctx = (error as { context?: Response }).context

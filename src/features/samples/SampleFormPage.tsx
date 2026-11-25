@@ -92,7 +92,7 @@ export default function SampleFormPage() {
   const kg = parseNumber(batchKg) ?? 0
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="mx-auto max-w-3xl space-y-4">
       <PageTitle
         title={isEdit ? 'تعديل العينة' : 'عينة جديدة'}
         subtitle={isEdit ? existing.data?.code : 'الكود هيتولد تلقائي بعد الحفظ'}

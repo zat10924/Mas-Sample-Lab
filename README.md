@@ -22,6 +22,7 @@
 1. `supabase/migrations/000_cleanup_old_version.sql` — **فقط** لو كنت شغّلت الملف القديم `001_schema.sql` قبل كده. لو ما شغّلتوش: تخطّى.
 2. `supabase/migrations/001_lab_schema.sql`
 3. `supabase/migrations/002_seed_recipes.sql` (30 تركيبة)
+4. `supabase/migrations/003_lab_access_control.sql` — تحكم في وصول كل مستخدم للمختبر (حتى المدراء)
 
 > ممنوع تشغيل `001_schema.sql` القديم أبدًا.
 

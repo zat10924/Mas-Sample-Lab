@@ -48,7 +48,7 @@ export default function AssistantPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100dvh-13rem)] flex-col">
+    <div className="mx-auto flex min-h-[calc(100dvh-13rem)] max-w-3xl flex-col lg:min-h-[calc(100dvh-9rem)]">
       <PageTitle title="المساعد الذكي" subtitle="اسأل عن الجليز والحرق والعيوب" />
 
       <div className="flex-1 space-y-3">
@@ -86,7 +86,7 @@ export default function AssistantPage() {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={onSubmit} className="sticky bottom-20 mt-4 flex gap-2 bg-page pt-2">
+      <form onSubmit={onSubmit} className="sticky bottom-20 mt-4 flex gap-2 bg-page pt-2 lg:bottom-0 lg:pb-2">
         <input
           className="input"
           placeholder="اكتب سؤالك..."

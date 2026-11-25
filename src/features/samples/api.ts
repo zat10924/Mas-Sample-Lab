@@ -65,15 +65,17 @@ export async function deleteSample(id: string): Promise<void> {
     .select('image_path')
     .eq('sample_id', id)
   if (listError) throw listError
-
   const paths = (results ?? []).map((r: { image_path: string }) => r.image_path)
+
+  // نحذف الصف الأول (والنتائج بتتحذف معاه تلقائي)، وبعدها الصور، عشان لو الحذف اتمنع ما نخسرش الصور
+  const { data, error } = await supabase.from('lab_samples').delete().eq('id', id).select('id')
+  if (error) throw error
+  if (!data || data.length === 0) throw new Error('الحذف مرفوض: مفيش صلاحية')
+
   if (paths.length > 0) {
     const { error: storageError } = await supabase.storage.from(BUCKET).remove(paths)
     if (storageError) throw storageError
   }
-
-  const { error } = await supabase.from('lab_samples').delete().eq('id', id)
-  if (error) throw error
 }
 
 export async function listResults(sampleId: string): Promise<SampleResult[]> {

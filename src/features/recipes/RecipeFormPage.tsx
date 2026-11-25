@@ -143,7 +143,7 @@ export default function RecipeFormPage() {
   if (isEdit && existing.error) return <ErrorBox error={existing.error} />
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="mx-auto max-w-3xl space-y-4">
       <PageTitle title={isEdit ? 'تعديل التركيبة' : 'تركيبة جديدة'} />
 
       <div className="card space-y-4">

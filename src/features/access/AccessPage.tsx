@@ -18,7 +18,7 @@ async function setAccess(userId: string, level: string): Promise<void> {
 }
 
 export default function AccessPage() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, me } = useAuth()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
 
@@ -40,11 +40,11 @@ export default function AccessPage() {
     <div>
       <PageTitle
         title="صلاحيات المختبر"
-        subtitle="المدير = تعديل، وصاحب المصنع = عرض فقط. الباقي بتحدده هنا"
+        subtitle="تحكم في وصول كل مستخدم للمختبر (حتى المدراء). المدير وصاحب المصنع عندهم وصول افتراضي وتقدر تسحبه منهم"
       />
 
       <input
-        className="input mb-3"
+        className="input mb-3 lg:max-w-md"
         placeholder="ابحث بالاسم..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -55,17 +55,19 @@ export default function AccessPage() {
       {change.error && <ErrorBox error={change.error} />}
       {!users.isLoading && !users.error && items.length === 0 && <Empty text="مفيش مستخدمين مطابقين" />}
 
-      <div className="space-y-2">
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
         {items.map((u) => {
-          const fixed = u.role === 'admin' || u.role === 'owner'
+          const self = u.id === me?.id
           return (
             <div key={u.id} className="card flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="truncate font-bold text-ink">{u.full_name || 'بدون اسم'}</div>
                 <div className="text-xs text-mute">{ROLE_AR[u.role] ?? u.role}</div>
               </div>
-              {fixed ? (
-                <span className="badge bg-brand-50 text-brand-800">{LEVEL_AR[u.level ?? 'view']}</span>
+              {self ? (
+                <span className="badge bg-brand-50 text-brand-800">
+                  أنت · {LEVEL_AR[u.level ?? 'none']}
+                </span>
               ) : (
                 <select
                   className="rounded-lg border border-line bg-surface px-2 py-1.5 text-sm text-ink"

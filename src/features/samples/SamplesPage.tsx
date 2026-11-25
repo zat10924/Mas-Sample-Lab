@@ -52,7 +52,7 @@ export default function SamplesPage() {
       />
 
       <input
-        className="input mb-3"
+        className="input mb-3 lg:max-w-md"
         placeholder="ابحث بكود العينة أو اسم التركيبة..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -77,11 +77,11 @@ export default function SamplesPage() {
       {error && <ErrorBox error={error} />}
       {!isLoading && !error && items.length === 0 && <Empty text="مفيش عينات لسه" />}
 
-      <div className="space-y-2">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((s) => {
           const finalCode = s.results.find((r) => r.final_code)?.final_code ?? null
           return (
-            <Link key={s.id} to={`/samples/${s.id}`} className="card block active:bg-page">
+            <Link key={s.id} to={`/samples/${s.id}`} className="card-link">
               <div className="flex items-center justify-between gap-2">
                 <span dir="ltr" className="font-bold text-ink">
                   {s.code}

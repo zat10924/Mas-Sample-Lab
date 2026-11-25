@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading: sessionLoading || (!!userId && loadedFor !== userId),
       canRead: level === 'view' || level === 'edit',
       canWrite: level === 'edit',
-      isAdmin: me?.role === 'admin',
+      isAdmin: me?.role === 'admin' && level === 'edit',
       signOut,
       refreshMe: loadMe,
     }

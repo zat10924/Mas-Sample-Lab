@@ -118,6 +118,18 @@
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold;
   }
+  .sidebar {
+    background: linear-gradient(180deg, var(--hd1), var(--hd2));
+    border-inline-end: 2px solid var(--gold);
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.12);
+  }
+  .card-link {
+    @apply card block transition;
+  }
+  .card-link:hover {
+    border-color: var(--gold);
+    transform: translateY(-1px);
+  }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }

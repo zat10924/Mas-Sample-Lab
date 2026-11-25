@@ -47,7 +47,7 @@ export default function RecipesPage() {
       />
 
       <input
-        className="input mb-3"
+        className="input mb-3 lg:max-w-md"
         placeholder="ابحث بالاسم أو الكود..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -72,12 +72,12 @@ export default function RecipesPage() {
       {error && <ErrorBox error={error} />}
       {!isLoading && !error && items.length === 0 && <Empty text="مفيش تركيبات مطابقة" />}
 
-      <div className="space-y-2">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((r) => (
           <Link
             key={r.id}
             to={`/recipes/${r.id}`}
-            className="card flex items-center justify-between gap-3 active:bg-page"
+            className="card-link flex items-center justify-between gap-3"
           >
             <div className="min-w-0">
               <div className="truncate font-semibold text-ink">{r.name}</div>

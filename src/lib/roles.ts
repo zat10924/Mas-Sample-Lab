@@ -7,6 +7,7 @@ export const ROLE_AR: Record<string, string> = {
 }
 
 export const LEVEL_AR: Record<string, string> = {
+  none: 'بدون وصول',
   edit: 'تعديل',
   view: 'عرض فقط',
 }

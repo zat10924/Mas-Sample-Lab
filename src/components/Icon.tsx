@@ -49,6 +49,12 @@ const PATHS = {
   plus: <path d="M12 5v14M5 12h14" />,
   logout: <path d="M9 21H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4M16 17l5-5-5-5M21 12H9" />,
   factory: <path d="M2 21h20M4 21V9l6 4V9l6 4V4h4v17" />,
+  trash: (
+    <>
+      <path d="M4 7h16M10 11v6M14 11v6" />
+      <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M9 7V4h6v3" />
+    </>
+  ),
   clock: (
     <>
       <circle cx="12" cy="12" r="9" />
