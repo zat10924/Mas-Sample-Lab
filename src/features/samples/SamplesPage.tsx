@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listSamples } from './api'
 import { useAuth } from '../auth/AuthProvider'
-import { Empty, ErrorBox, PageTitle, Spinner, StatusBadge, STATUS_LABELS } from '../../components/ui'
+import { Empty, ErrorBox, ListSkeleton, PageTitle, StatusBadge, STATUS_LABELS } from '../../components/ui'
 import { Icon } from '../../components/Icon'
 import { COLOR_OPTIONS, DEFECT_OPTIONS, FINISH_OPTIONS, parseResultCode } from '../../lib/codes'
 import { finalCodeOf } from '../../lib/stats'
@@ -289,13 +289,13 @@ export default function SamplesPage() {
         </button>
       </div>
 
-      {isLoading && <Spinner />}
+      {isLoading && <ListSkeleton />}
       {error && <ErrorBox error={error} />}
       {!isLoading && !error && items.length === 0 && (
         <Empty text={data && data.length > 0 ? 'مفيش عينات مطابقة للفلاتر' : 'مفيش عينات لسه'} />
       )}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((s) => {
           const finalCode = finalCodeOf(s)
           return (

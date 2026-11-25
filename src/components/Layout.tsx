@@ -1,9 +1,11 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthProvider'
 import { MAIN_APP_URL } from '../lib/mainApp'
 import { ROLE_AR, toggleTheme } from '../lib/roles'
 import icon from '../assets/icon-192.png'
 import { Icon, type IconName } from './Icon'
+import CommandPalette from './CommandPalette'
 
 interface NavItem {
   to: string
@@ -23,6 +25,21 @@ const ACCESS_ITEM: NavItem = { to: '/access', label: 'الصلاحيات', icon:
 
 export default function Layout() {
   const { me, isAdmin, canWrite, signOut } = useAuth()
+  const location = useLocation()
+  const [paletteOpen, setPaletteOpen] = useState(false)
+
+  // Ctrl+K / Cmd+K لفتح البحث الشامل
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   const items = isAdmin ? [...NAV_ITEMS, ACCESS_ITEM] : NAV_ITEMS
   const roleLine = `${ROLE_AR[me?.role ?? ''] ?? ''}${!canWrite ? ' · عرض فقط' : ''}`
 
@@ -39,6 +56,16 @@ export default function Layout() {
             <div className="text-[11px] text-white/60">للخزف والصيني</div>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setPaletteOpen(true)}
+          className="mx-3 mb-3 flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm text-white/80 hover:bg-white/20"
+        >
+          <Icon name="search" size={16} />
+          <span className="flex-1 text-start">بحث سريع</span>
+          <kbd className="rounded bg-white/15 px-1.5 text-[10px] font-bold">Ctrl K</kbd>
+        </button>
 
         <nav className="flex-1 space-y-1 px-3">
           {items.map((item) => (
@@ -112,6 +139,14 @@ export default function Layout() {
             </div>
           </div>
           <span className="flex-1" />
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            aria-label="بحث سريع"
+            className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 hover:bg-white/25"
+          >
+            <Icon name="search" size={16} />
+          </button>
           <a
             href={MAIN_APP_URL}
             className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25"
@@ -141,7 +176,9 @@ export default function Layout() {
 
       <main className="mx-auto max-w-3xl px-4 pb-28 pt-5 lg:ps-64 lg:max-w-none lg:pb-12 lg:pt-0">
         <div className="mx-auto lg:max-w-6xl lg:px-10 lg:py-10">
-          <Outlet />
+          <div key={location.pathname} className="page-enter">
+            <Outlet />
+          </div>
         </div>
       </main>
 
@@ -178,6 +215,7 @@ export default function Layout() {
           ))}
         </div>
       </nav>
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   )
 }

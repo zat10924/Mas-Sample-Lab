@@ -8,6 +8,9 @@ import { getRecipe } from '../recipes/api'
 import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, PageTitle, Spinner, StatusBadge, STATUS_LABELS } from '../../components/ui'
 import { Icon } from '../../components/Icon'
+import { useToast } from '../../components/Toast'
+import { sampleFormUrl } from '../../lib/quickEntry'
+import { buildSampleMessage, clearGroupLink, copyAndOpenGroup, shareToWhatsApp } from '../../lib/whatsapp'
 import PasswordConfirm from '../../components/PasswordConfirm'
 import type { SampleStatus } from '../../types/db'
 
@@ -16,8 +19,10 @@ export default function SampleDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { canWrite } = useAuth()
+  const { toast } = useToast()
   const fileInput = useRef<HTMLInputElement>(null)
   const [askDelete, setAskDelete] = useState(false)
+  const [waNote, setWaNote] = useState<string | null>(null)
 
   const sample = useQuery({ queryKey: ['sample', id], queryFn: () => getSample(id), enabled: !!id })
   const results = useQuery({ queryKey: ['results', id], queryFn: () => listResults(id), enabled: !!id })
@@ -46,6 +51,7 @@ export default function SampleDetailPage() {
     await deleteSample(id)
     setAskDelete(false)
     await queryClient.invalidateQueries({ queryKey: ['samples'] })
+    toast('اتحذفت العينة')
     navigate('/samples', { replace: true })
   }
 
@@ -60,13 +66,65 @@ export default function SampleDetailPage() {
         title={s.code}
         subtitle={s.recipe ? `${s.recipe.name} (${s.recipe.code})` : 'بدون تركيبة'}
         action={
-          canWrite ? (
-            <Link to={`/samples/${s.id}/edit`} className="btn-secondary">
-              تعديل
-            </Link>
-          ) : undefined
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() =>
+                void shareToWhatsApp(
+                  buildSampleMessage(
+                    s,
+                    (results.data ?? []).find((r) => r.final_code)?.final_code ?? null,
+                    window.location.href,
+                  ),
+                )
+              }
+            >
+              <Icon name="share" size={16} />
+              واتساب
+            </button>
+            {canWrite && (
+              <Link to={`/samples/${s.id}/edit`} className="btn-secondary">
+                تعديل
+              </Link>
+            )}
+          </div>
         }
       />
+
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <button
+          type="button"
+          className="btn-ghost !px-3 !py-2"
+          onClick={async () =>
+            setWaNote(
+              await copyAndOpenGroup(
+                buildSampleMessage(
+                  s,
+                  (results.data ?? []).find((r) => r.final_code)?.final_code ?? null,
+                  window.location.href,
+                ),
+              ),
+            )
+          }
+        >
+          <Icon name="share" size={16} />
+          نسخ الرسالة وفتح جروب المعمل
+        </button>
+        {canWrite && (
+          <Link
+            to={sampleFormUrl({ recipeId: s.recipe_id, kg: s.batch_kg, temp: s.firing_temp, method: s.application_method, body: s.body_type })}
+            className="btn-ghost !px-3 !py-2"
+          >
+            <Icon name="copy" size={16} />
+            نسخ كعينة جديدة
+          </Link>
+        )}
+        <button type="button" className="text-xs text-faint underline" onClick={() => { clearGroupLink(); setWaNote('اتمسح رابط الجروب من الجهاز') }}>
+          تغيير الجروب
+        </button>
+        {waNote && <span className="text-xs text-mute">{waNote}</span>}
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-5 lg:items-start">
         <div className="space-y-4 lg:col-span-2">

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { notifyReview } from '../../lib/whatsapp'
+import { useToast } from '../../components/Toast'
 import { analyzeResult, deleteResult, getSignedUrl, saveReview } from './api'
 import { ErrorBox } from '../../components/ui'
 import { Icon } from '../../components/Icon'
@@ -39,6 +41,7 @@ export default function ResultCard({
   canWrite: boolean
 }) {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [finish, setFinish] = useState<Finish | ''>(result.finish ?? '')
   const [color, setColor] = useState<ColorMatch | 0>(result.color_match ?? 0)
   const [defects, setDefects] = useState<string[]>(result.defects ?? [])
@@ -61,7 +64,11 @@ export default function ResultCard({
         reviewer_notes: notes.trim() || null,
       })
     },
-    onSuccess: refresh,
+    onSuccess: async (code) => {
+      void notifyReview(result.id)
+      toast(`اتعتمدت النتيجة ${code}`)
+      await refresh()
+    },
   })
   const remove = useMutation({ mutationFn: () => deleteResult(result), onSuccess: refresh })
 

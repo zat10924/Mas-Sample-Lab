@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listRecipes } from './api'
 import { useAuth } from '../auth/AuthProvider'
-import { Empty, ErrorBox, PageTitle, Spinner } from '../../components/ui'
+import { Empty, ErrorBox, ListSkeleton, PageTitle } from '../../components/ui'
 import { Icon } from '../../components/Icon'
 import { RECIPE_TYPE_LABELS } from '../../lib/codes'
 
@@ -104,11 +104,11 @@ export default function RecipesPage() {
         </Link>
       </div>
 
-      {isLoading && <Spinner />}
+      {isLoading && <ListSkeleton />}
       {error && <ErrorBox error={error} />}
       {!isLoading && !error && items.length === 0 && <Empty text="مفيش تركيبات مطابقة" />}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((r) => (
           <Link
             key={r.id}

@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, PageTitle, Spinner, StatusBadge } from '../../components/ui'
 import { Icon, type IconName } from '../../components/Icon'
 import { Bars } from '../../components/Bars'
+import CountUp from '../../components/CountUp'
 import { computeStats, finalCodeOf } from '../../lib/stats'
 import { downloadCsv, printPage } from '../../lib/export'
 import { STATUS_LABELS } from '../../components/ui'
@@ -44,7 +45,9 @@ function Stat({
   return (
     <div className={`relative overflow-hidden rounded-2xl p-4 ${tone}`}>
       <Icon name={icon} size={20} className="absolute end-3 top-3 opacity-60" />
-      <div className="text-3xl font-extrabold tabular-nums">{value}</div>
+      <div className="text-3xl font-extrabold tabular-nums">
+        <CountUp value={value} />
+      </div>
       <div className="mt-1 text-sm font-medium opacity-80">{label}</div>
     </div>
   )
@@ -85,7 +88,7 @@ export default function DashboardPage() {
       {stats.isLoading && <Spinner />}
       {stats.error && <ErrorBox error={stats.error} />}
       {stats.data && (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <Stat label="تركيبة" value={stats.data.recipes} tone="bg-brand-50 text-brand-900" icon="flask" />
           <Stat label="عينة" value={stats.data.samples} tone="bg-sky-50 text-sky-900" icon="vase" />
           <Stat label="مخططة" value={stats.data.planned} tone="bg-tint text-ink" icon="clock" />
@@ -124,10 +127,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-3">
             <div className="card">
               <div className="text-3xl font-extrabold tabular-nums text-emerald-700">
-                {analytics.cleanRate === null ? '—' : `${analytics.cleanRate}%`}
+                {analytics.cleanRate === null ? '—' : <CountUp value={analytics.cleanRate} suffix="%" />}
               </div>
               <div className="mt-1 text-sm text-mute">نسبة النجاح (بدون عيوب)</div>
               <div className="mt-0.5 text-xs text-faint">
@@ -135,7 +138,9 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="card">
-              <div className="text-3xl font-extrabold tabular-nums">{analytics.reviewed}</div>
+              <div className="text-3xl font-extrabold tabular-nums">
+                <CountUp value={analytics.reviewed} />
+              </div>
               <div className="mt-1 text-sm text-mute">عينة تم تقييمها</div>
               <div className="mt-0.5 text-xs text-faint">من أصل {analytics.total}</div>
             </div>
@@ -195,7 +200,7 @@ export default function DashboardPage() {
         {samples.data && samples.data.length === 0 && (
           <div className="card py-8 text-center text-sm text-mute">لسه مفيش عينات</div>
         )}
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {(samples.data ?? []).slice(0, 5).map((s) => (
             <Link key={s.id} to={`/samples/${s.id}`} className="card-link flex items-center justify-between gap-2">
               <div className="min-w-0">

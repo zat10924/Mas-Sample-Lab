@@ -1,12 +1,13 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getSample, saveSample } from './api'
+import { getSample, listSamples, saveSample } from './api'
 import { getRecipe, listRecipes } from '../recipes/api'
 import AmountsTable from '../recipes/AmountsTable'
 import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, Field, PageTitle, Spinner } from '../../components/ui'
 import { parseNumber } from '../../lib/units'
+import { useToast } from '../../components/Toast'
 
 const APPLICATION_METHODS = ['غمس', 'رش', 'فرشاة', 'سكب']
 
@@ -21,6 +22,7 @@ export default function SampleFormPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { canWrite } = useAuth()
+  const { toast } = useToast()
 
   const existing = useQuery({
     queryKey: ['sample', id],
@@ -28,13 +30,14 @@ export default function SampleFormPage() {
     enabled: isEdit,
   })
   const recipes = useQuery({ queryKey: ['recipes'], queryFn: listRecipes })
+  const allSamples = useQuery({ queryKey: ['samples'], queryFn: listSamples })
 
   const [recipeId, setRecipeId] = useState(searchParams.get('recipe') ?? '')
-  const [bodyType, setBodyType] = useState('')
-  const [batchKg, setBatchKg] = useState('1')
-  const [firingTemp, setFiringTemp] = useState('')
+  const [bodyType, setBodyType] = useState(searchParams.get('body') ?? '')
+  const [batchKg, setBatchKg] = useState(searchParams.get('kg') ?? '1')
+  const [firingTemp, setFiringTemp] = useState(searchParams.get('temp') ?? '')
   const [firingDate, setFiringDate] = useState(isEdit ? '' : todayLocal())
-  const [method, setMethod] = useState('')
+  const [method, setMethod] = useState(searchParams.get('method') ?? '')
   const [notes, setNotes] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -56,6 +59,27 @@ export default function SampleFormPage() {
     enabled: !!recipeId,
   })
 
+  // اقتراحات من العينات السابقة
+  const bodyTypes = useMemo(
+    () => [...new Set((allSamples.data ?? []).map((x) => x.body_type).filter((v): v is string => !!v))],
+    [allSamples.data],
+  )
+  const lastSimilar = useMemo(
+    () => (!isEdit && recipeId ? (allSamples.data ?? []).find((x) => x.recipe_id === recipeId) ?? null : null),
+    [isEdit, recipeId, allSamples.data],
+  )
+  function reuseLast() {
+    if (!lastSimilar) return
+    setBatchKg(String(lastSimilar.batch_kg))
+    setBodyType(lastSimilar.body_type ?? '')
+    setFiringTemp(lastSimilar.firing_temp !== null ? String(lastSimilar.firing_temp) : '')
+    setMethod(lastSimilar.application_method ?? '')
+    toast(`اتنسخت إعدادات ${lastSimilar.code}`, 'info')
+  }
+  const tempNum = parseNumber(firingTemp)
+  const tempWarn =
+    tempNum !== null && (tempNum < 600 || tempNum > 1450) ? 'الدرجة دي غريبة على الجليز، راجعها (المعتاد 900–1300°م)' : undefined
+
   const save = useMutation({
     mutationFn: async () => {
       const kg = parseNumber(batchKg)
@@ -74,9 +98,14 @@ export default function SampleFormPage() {
     onSuccess: async (sampleId) => {
       await queryClient.invalidateQueries({ queryKey: ['samples'] })
       await queryClient.invalidateQueries({ queryKey: ['sample', sampleId] })
+      toast(isEdit ? 'اتحفظت التعديلات' : 'اتسجّلت العينة')
       navigate(`/samples/${sampleId}`, { replace: true })
     },
-    onError: (e) => setFormError(e instanceof Error ? e.message : 'حدث خطأ'),
+    onError: (e) => {
+      const msg = e instanceof Error ? e.message : 'حدث خطأ'
+      setFormError(msg)
+      toast(msg, 'error')
+    },
   })
 
   function onSubmit(e: FormEvent) {
@@ -110,6 +139,19 @@ export default function SampleFormPage() {
           </select>
         </Field>
 
+        {lastSimilar && (
+          <div className="pop-in flex items-center justify-between gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">
+            <span className="min-w-0 truncate">
+              آخر عينة من التركيبة دي: <b dir="ltr">{lastSimilar.code}</b>
+              {lastSimilar.firing_temp ? ` · ${lastSimilar.firing_temp}°م` : ''}
+              {lastSimilar.application_method ? ` · ${lastSimilar.application_method}` : ''}
+            </span>
+            <button type="button" className="shrink-0 font-bold underline" onClick={reuseLast}>
+              استخدم نفس الإعدادات
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <Field label="كمية الجليز (كجم)">
             <input
@@ -121,12 +163,22 @@ export default function SampleFormPage() {
             />
           </Field>
           <Field label="نوع البدن">
-            <input className="input" value={bodyType} onChange={(e) => setBodyType(e.target.value)} />
+            <input
+              className="input"
+              list="body-type-list"
+              value={bodyType}
+              onChange={(e) => setBodyType(e.target.value)}
+            />
+            <datalist id="body-type-list">
+              {bodyTypes.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
           </Field>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="درجة الحرق (°م)">
+          <Field label="درجة الحرق (°م)" hint={tempWarn}>
             <input
               className="input"
               inputMode="numeric"

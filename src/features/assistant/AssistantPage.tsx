@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { callFunction } from '../../lib/functions'
 import { errorMessage, PageTitle } from '../../components/ui'
 
@@ -19,6 +20,8 @@ export default function AssistantPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const [params] = useSearchParams()
+  const autoSent = useRef(false)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -41,6 +44,15 @@ export default function AssistantPage() {
       setBusy(false)
     }
   }
+
+  // سؤال جاي من البحث الشامل (?q=...)
+  useEffect(() => {
+    const q = params.get('q')
+    if (q && !autoSent.current) {
+      autoSent.current = true
+      void send(q)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()

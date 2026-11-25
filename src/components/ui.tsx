@@ -18,6 +18,17 @@ export function Spinner({ label = 'جاري التحميل...' }: { label?: stri
   )
 }
 
+/** هيكل تحميل بدل الدوّامة: كروت رمادية بتلمع لحد ما البيانات توصل */
+export function ListSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="جاري التحميل">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="skeleton h-[5.5rem]" />
+      ))}
+    </div>
+  )
+}
+
 export function ErrorBox({ error }: { error: unknown }) {
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRecipe, listRecipes, saveRecipe, type IngredientInput } from './api'
@@ -7,6 +7,7 @@ import { ErrorBox, Field, PageTitle, Spinner } from '../../components/ui'
 import { Icon } from '../../components/Icon'
 import { nextRecipeCode, RECIPE_TYPE_LABELS } from '../../lib/codes'
 import { parseNumber } from '../../lib/units'
+import { useToast } from '../../components/Toast'
 import type { RecipeBasis, RecipeType } from '../../types/db'
 
 interface IngredientRow {
@@ -28,6 +29,7 @@ export default function RecipeFormPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { canWrite } = useAuth()
+  const { toast } = useToast()
 
   const existing = useQuery({
     queryKey: ['recipe', id],
@@ -35,6 +37,11 @@ export default function RecipeFormPage() {
     enabled: isEdit,
   })
   const all = useQuery({ queryKey: ['recipes'], queryFn: listRecipes })
+
+  const materials = useMemo(
+    () => [...new Set((all.data ?? []).flatMap((r) => r.ingredients.map((i) => i.material)))].sort((a, b) => a.localeCompare(b, 'ar')),
+    [all.data],
+  )
 
   const [code, setCode] = useState('')
   const [codeTouched, setCodeTouched] = useState(false)
@@ -122,6 +129,7 @@ export default function RecipeFormPage() {
     onSuccess: async (recipeId) => {
       await queryClient.invalidateQueries({ queryKey: ['recipes'] })
       await queryClient.invalidateQueries({ queryKey: ['recipe', recipeId] })
+      toast(isEdit ? 'اتحفظت التعديلات' : 'اتحفظت التركيبة')
       navigate(`/recipes/${recipeId}`, { replace: true })
     },
     onError: (e) => {
@@ -144,6 +152,11 @@ export default function RecipeFormPage() {
 
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-3xl space-y-4">
+      <datalist id="material-list">
+        {materials.map((m) => (
+          <option key={m} value={m} />
+        ))}
+      </datalist>
       <PageTitle title={isEdit ? 'تعديل التركيبة' : 'تركيبة جديدة'} />
 
       <div className="card space-y-4">
@@ -234,6 +247,7 @@ export default function RecipeFormPage() {
                 <input
                   className="input"
                   placeholder="اسم المكوّن (مثلًا: مبيض)"
+                  list="material-list"
                   value={row.material}
                   onChange={(e) => updateRow(row.key, { material: e.target.value })}
                 />
