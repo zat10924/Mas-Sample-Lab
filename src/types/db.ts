@@ -108,7 +108,7 @@ export interface SampleResult {
 
 export interface SampleListItem extends Sample {
   recipe: Pick<Recipe, 'code' | 'name'> | null
-  results: Pick<SampleResult, 'final_code'>[]
+  results: (Pick<SampleResult, 'final_code'> & { image_path?: string })[]
   components: Pick<SampleComponent, 'material' | 'amount' | 'unit' | 'sort_order'>[]
 }
 

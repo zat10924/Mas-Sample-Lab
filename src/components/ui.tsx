@@ -36,11 +36,12 @@ export function ErrorBox({ error }: { error: unknown }) {
   )
 }
 
-export function Empty({ text, icon = 'inbox' }: { text: string; icon?: IconName }) {
+export function Empty({ text, icon = 'inbox', action }: { text: string; icon?: IconName; action?: ReactNode }) {
   return (
     <div className="card flex flex-col items-center gap-3 py-10 text-center text-sm text-mute">
       <IconBadge name={icon} tone="gray" size={26} box="h-14 w-14" />
       {text}
+      {action}
     </div>
   )
 }
@@ -61,7 +62,7 @@ export function PageTitle({
       <div className="flex min-w-0 items-center gap-3">
         {icon && <IconBadge name={icon} size={22} box="h-11 w-11" />}
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold text-ink lg:text-2xl">{title}</h1>
+          <h1 className="title-gradient truncate text-xl font-extrabold lg:text-2xl">{title}</h1>
           {subtitle && <p className="mt-0.5 truncate text-sm text-mute">{subtitle}</p>}
         </div>
       </div>

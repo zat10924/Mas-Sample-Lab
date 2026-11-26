@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthProvider'
 import { MAIN_APP_URL } from '../lib/mainApp'
 import { ROLE_AR, applyStoredFontSize, toggleTheme } from '../lib/roles'
@@ -48,6 +48,13 @@ export default function Layout() {
   }, [])
 
   const items = isAdmin ? [...NAV_ITEMS, ACCESS_ITEM] : NAV_ITEMS
+  const fab = !canWrite
+    ? null
+    : location.pathname === '/recipes'
+      ? { to: '/recipes/new', label: 'تركيبة' }
+      : location.pathname === '/' || location.pathname === '/samples'
+        ? { to: '/samples/new', label: 'عينة' }
+        : null
   const roleLine = `${ROLE_AR[me?.role ?? ''] ?? ''}${!canWrite ? ' · عرض فقط' : ''}`
 
   return (
@@ -82,7 +89,7 @@ export default function Layout() {
               end={item.end}
               className={({ isActive }) =>
                 `relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
-                  isActive ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  isActive ? 'bg-white/15 text-white shadow-[inset_0_0_0_1px_rgba(217,180,95,0.4),0_0_22px_-6px_rgba(217,180,95,0.5)]' : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`
               }
             >
@@ -154,7 +161,7 @@ export default function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 pb-28 pt-5 lg:ps-64 lg:max-w-none lg:pb-12 lg:pt-0">
+      <main className="mx-auto max-w-3xl px-4 pb-32 pt-5 lg:ps-64 lg:max-w-none lg:pb-12 lg:pt-0">
         <div className="mx-auto lg:max-w-6xl lg:px-10 lg:py-10">
           <OfflineStatus />
           <div key={location.pathname} className="page-enter">
@@ -163,8 +170,19 @@ export default function Layout() {
         </div>
       </main>
 
+      {/* ===== الموبايل: زرار إضافة سريع (في الرئيسية والعينات والتركيبات) ===== */}
+      {fab && (
+        <Link
+          to={fab.to}
+          className="btn-primary fixed end-4 z-30 !rounded-full !px-5 !py-3.5 text-base shadow-xl bottom-[calc(6.4rem+env(safe-area-inset-bottom))] lg:hidden print:hidden"
+        >
+          <Icon name="plus" size={20} strokeWidth={2.4} />
+          {fab.label}
+        </Link>
+      )}
+
       {/* ===== الموبايل: شريط سفلي ===== */}
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface lg:hidden">
+      <nav className="safe-bottom dock fixed z-20 lg:hidden">
         <div className={`mx-auto grid max-w-3xl ${items.length > 4 ? 'grid-cols-5' : 'grid-cols-4'}`}>
           {items.map((item) => (
             <NavLink
@@ -179,12 +197,9 @@ export default function Layout() {
             >
               {({ isActive }) => (
                 <>
-                  {isActive && (
-                    <span className="absolute top-0 h-[3px] w-8 rounded-b bg-gold" aria-hidden="true" />
-                  )}
                   <span
-                    className={`grid h-7 w-12 place-items-center rounded-full transition-colors ${
-                      isActive ? 'bg-brand-50' : ''
+                    className={`grid h-7 w-12 place-items-center rounded-full transition-all duration-200 ${
+                      isActive ? 'bg-brand-700 text-white shadow-lg shadow-brand-700/40' : ''
                     }`}
                   >
                     <Icon name={item.icon} size={21} strokeWidth={isActive ? 2.1 : 1.8} />

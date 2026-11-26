@@ -12,7 +12,7 @@ import { downloadCsv } from '../../lib/export'
 import { formatComponent } from '../../lib/units'
 import type { SampleStatus } from '../../types/db'
 
-type Filter = 'all' | SampleStatus
+type Filter = 'all' | SampleStatus | 'clean' | 'defects'
 type Sort = 'newest' | 'oldest' | 'temp_desc' | 'temp_asc' | 'code'
 
 const FILTERS: { value: Filter; label: string; icon: IconName }[] = [
@@ -20,6 +20,8 @@ const FILTERS: { value: Filter; label: string; icon: IconName }[] = [
   { value: 'planned', label: STATUS_LABELS.planned, icon: 'clock' },
   { value: 'fired', label: STATUS_LABELS.fired, icon: 'flame' },
   { value: 'reviewed', label: STATUS_LABELS.reviewed, icon: 'checkCircle' },
+  { value: 'clean', label: 'نظيفة', icon: 'check' },
+  { value: 'defects', label: 'فيها عيوب', icon: 'alert' },
 ]
 
 const SORTS: { value: Sort; label: string }[] = [
@@ -61,12 +63,27 @@ export default function SamplesPage() {
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1]))
   }, [data])
 
+  const counts = useMemo(() => {
+    const c: Record<Filter, number> = { all: 0, planned: 0, fired: 0, reviewed: 0, clean: 0, defects: 0 }
+    for (const s of data ?? []) {
+      c.all++
+      c[s.status]++
+      const p = parseResultCode(finalCodeOf(s))
+      if (p) (p.defects.length === 0 ? c.clean++ : c.defects++)
+    }
+    return c
+  }, [data])
+
   const items = useMemo(() => {
     const q = search.trim().toLowerCase()
     const tMin = adv.tempMin === '' ? null : Number(adv.tempMin)
     const tMax = adv.tempMax === '' ? null : Number(adv.tempMax)
     const list = (data ?? []).filter((s) => {
-      if (filter !== 'all' && s.status !== filter) return false
+      if (filter === 'clean' || filter === 'defects') {
+        const pr = parseResultCode(finalCodeOf(s))
+        if (!pr) return false
+        if (filter === 'clean' ? pr.defects.length > 0 : pr.defects.length === 0) return false
+      } else if (filter !== 'all' && s.status !== filter) return false
       if (adv.recipe && s.recipe_id !== adv.recipe) return false
       const day = (s.firing_date ?? s.created_at).slice(0, 10)
       if (adv.from && day < adv.from) return false
@@ -135,7 +152,7 @@ export default function SamplesPage() {
         subtitle={data ? `${items.length} من ${data.length} عينة` : undefined}
         action={
           canWrite ? (
-            <Link to="/samples/new" className="btn-primary">
+            <Link to="/samples/new" className="btn-primary hidden lg:inline-flex">
               <Icon name="plus" size={16} />
               عينة
             </Link>
@@ -272,6 +289,7 @@ export default function SamplesPage() {
             >
               <Icon name={f.icon} size={15} />
               {f.label}
+              <span className={`text-xs tabular-nums ${filter === f.value ? 'text-white/80' : 'text-faint'}`}>{counts[f.value]}</span>
             </button>
           ))}
         </div>
@@ -292,7 +310,18 @@ export default function SamplesPage() {
       {isLoading && <ListSkeleton />}
       {error && <ErrorBox error={error} />}
       {!isLoading && !error && items.length === 0 && (
-        <Empty text={data && data.length > 0 ? 'مفيش عينات مطابقة للفلاتر' : 'مفيش عينات لسه'} />
+        <Empty
+          icon="vase"
+          text={data && data.length > 0 ? 'مفيش عينات مطابقة للفلاتر' : 'مفيش عينات لسه'}
+          action={
+            canWrite && !(data && data.length > 0) ? (
+              <Link to="/samples/new" className="btn-primary">
+                <Icon name="plus" size={16} />
+                أضف أول عينة
+              </Link>
+            ) : undefined
+          }
+        />
       )}
 
       <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">

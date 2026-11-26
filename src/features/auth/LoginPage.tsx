@@ -52,20 +52,20 @@ export default function LoginPage() {
 
   return (
     <div
-      className="flex min-h-[100dvh] items-center justify-center px-4 py-8"
-      style={{ background: 'linear-gradient(160deg, var(--hd1), var(--hd2))' }}
+      className="login-bg flex min-h-[100dvh] items-center justify-center px-4 py-8"
     >
-      <div className="w-full max-w-sm">
+      <div className="login-grid" aria-hidden="true" />
+      <div className="relative z-10 w-full max-w-sm">
         <img
           src={logo}
           alt="الماس للخزف والصيني"
-          className="mx-auto mb-5 w-60 rounded-2xl border-2 border-gold shadow-lg"
+          className="float-slow mx-auto mb-5 w-60 rounded-2xl border-2 border-gold shadow-2xl"
         />
         <h1 className="mb-4 text-center text-2xl font-extrabold text-white">
           مختبر <span className="text-gold-light">الماس</span>
         </h1>
 
-        <form onSubmit={onSubmit} className="card space-y-4">
+        <form onSubmit={onSubmit} className="card login-card space-y-4">
           <div>
             <label className="label" htmlFor="identity">الاسم</label>
             <div className="relative">

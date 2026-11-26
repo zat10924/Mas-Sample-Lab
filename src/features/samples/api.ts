@@ -32,7 +32,7 @@ export interface ListSamplesOptions {
 export async function listSamples(opts: ListSamplesOptions = {}): Promise<SampleListItem[]> {
   const fullSel = supabase
     .from('lab_samples')
-    .select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code), components:lab_sample_components(material,amount,unit,sort_order)')
+    .select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code,image_path), components:lab_sample_components(material,amount,unit,sort_order)')
   const fullFiltered = opts.status ? fullSel.eq('status', opts.status) : fullSel
   const fullOrdered = fullFiltered.order('created_at', { ascending: false })
   const full = await (opts.limit ? fullOrdered.limit(opts.limit) : fullOrdered)
@@ -40,7 +40,7 @@ export async function listSamples(opts: ListSamplesOptions = {}): Promise<Sample
   if (!isMissingComponents(full.error)) throw full.error
 
   // جدول المكونات لسه ما اتعملش (004): نكمّل بدونه بدل ما البرنامج يقف
-  const basicSel = supabase.from('lab_samples').select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code)')
+  const basicSel = supabase.from('lab_samples').select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code,image_path)')
   const basicFiltered = opts.status ? basicSel.eq('status', opts.status) : basicSel
   const basicOrdered = basicFiltered.order('created_at', { ascending: false })
   const basic = await (opts.limit ? basicOrdered.limit(opts.limit) : basicOrdered)

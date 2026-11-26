@@ -36,12 +36,12 @@ function Stat({
   icon: IconName
 }) {
   return (
-    <div className="card flex items-center gap-3 !p-3.5">
+    <div className="card stat-card flex items-center gap-3 !p-3.5">
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${tone}`}>
         <Icon name={icon} size={22} />
       </span>
       <div className="min-w-0">
-        <div className="text-2xl font-extrabold leading-none tabular-nums text-ink">
+        <div className="stat-num text-2xl font-extrabold leading-none tabular-nums">
           <CountUp value={value} />
         </div>
         <div className="mt-1 truncate text-xs font-medium text-mute">{label}</div>

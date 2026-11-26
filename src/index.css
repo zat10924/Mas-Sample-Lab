@@ -638,3 +638,266 @@
 .print-titlerow .print-title { flex: 1; }
 .print-qr { display: grid; justify-items: center; gap: 1pt; margin-top: 8pt; font-size: 7.5pt; color: #8a7f76; }
 .print-qr img { border: 1px solid #d9d0c5; border-radius: 5pt; padding: 2pt; background: #fff; }
+
+/* =====================================================================
+   v0.10 — واجهة "المستقبل": زجاج + توهّج ذهبي + شبكة خفيفة + حركات ناعمة
+   (مضافة في آخر الملف عشان تغلب القديم؛ الأحجام والهوامش ما اتغيّرتش)
+   ===================================================================== */
+:root {
+  --glass: color-mix(in srgb, var(--card) 82%, transparent);
+  --glass-line: color-mix(in srgb, var(--gold) 22%, var(--line));
+  --glow-gold: 0 10px 34px -10px color-mix(in srgb, var(--gold) 55%, transparent);
+  --glow-pri: 0 10px 24px -8px color-mix(in srgb, var(--pri) 60%, transparent);
+  --sh: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 14px 34px -14px rgba(66, 27, 36, 0.22);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --sh: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme='dark'] {
+  --sh: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+}
+
+@layer base {
+  body {
+    background-image:
+      radial-gradient(55rem 34rem at 95% -8%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 62%),
+      radial-gradient(48rem 32rem at -8% 6%, color-mix(in srgb, var(--pri) 13%, transparent), transparent 62%);
+    background-attachment: fixed;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(color-mix(in srgb, var(--ink) 11%, transparent) 1px, transparent 1.2px);
+    background-size: 24px 24px;
+    -webkit-mask-image: linear-gradient(to bottom, #000, transparent 65%);
+    mask-image: linear-gradient(to bottom, #000, transparent 65%);
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--gold) 45%, transparent);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--pri) 35%, transparent) transparent;
+  }
+  h1, h2 {
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  .card {
+    border-radius: 1.25rem;
+    border-color: var(--glass-line);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+  }
+  .pro-card {
+    border-radius: 1.4rem;
+    border-color: var(--glass-line);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+  }
+  .pro-card:hover,
+  .card-link:hover {
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold);
+  }
+  .btn {
+    border-radius: 0.95rem;
+  }
+  .btn-primary {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--pri), color-mix(in srgb, var(--pri) 62%, #000));
+    box-shadow: var(--glow-pri), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent);
+    transition: transform 0.15s, filter 0.2s, box-shadow 0.2s;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.28) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+  }
+  .btn-primary:hover::after {
+    transform: translateX(120%);
+  }
+  .btn-secondary {
+    background: var(--glass);
+    border-color: var(--glass-line);
+  }
+  .input {
+    border-radius: 0.95rem;
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+    border-color: var(--glass-line);
+  }
+  .input:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent), 0 0 22px -4px color-mix(in srgb, var(--gold) 45%, transparent);
+    border-color: var(--gold);
+  }
+  .badge {
+    letter-spacing: 0.01em;
+  }
+
+  /* القائمة الجانبية: توهّج وكرات ضوء */
+  .sidebar {
+    position: fixed;
+    background:
+      radial-gradient(22rem 18rem at 0% 0%, color-mix(in srgb, var(--gold) 20%, transparent), transparent 70%),
+      radial-gradient(20rem 22rem at 100% 100%, rgba(255, 255, 255, 0.07), transparent 70%),
+      linear-gradient(185deg, var(--hd1), var(--hd2));
+  }
+
+  /* الشريط العلوي (موبايل): زجاجي */
+  .topbar {
+    /* بدون backdrop-filter: قائمة الإعدادات جواه بتستخدم عنصر fixed */
+    background: linear-gradient(135deg, var(--hd1), var(--hd2));
+  }
+
+  /* الشريط السفلي (موبايل): جزيرة عائمة */
+  .dock {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.7rem + env(safe-area-inset-bottom));
+    padding-bottom: 0;
+    border: 1px solid var(--glass-line);
+    border-radius: 1.6rem;
+    background: color-mix(in srgb, var(--card) 80%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+    box-shadow: 0 18px 40px -12px rgba(30, 10, 16, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  /* بانر الترحيب: شفق متحرك + شبكة */
+  .hero {
+    border-radius: 1.75rem;
+    box-shadow: 0 22px 50px -18px rgba(66, 27, 36, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(115deg, transparent 30%, rgba(217, 180, 95, 0.22) 50%, transparent 70%),
+      linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 260% 100%, 28px 28px, 28px 28px;
+    animation: aurora 9s linear infinite;
+    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent);
+  }
+
+  /* كروت الأرقام: خط توهّج علوي + رقم متدرّج */
+  .stat-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.8;
+  }
+  .stat-num {
+    background: linear-gradient(135deg, var(--ink), var(--pri));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .title-gradient {
+    background: linear-gradient(90deg, var(--ink) 30%, var(--pri));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .action-tile {
+    background: var(--glass);
+    border-color: var(--glass-line);
+  }
+}
+
+@keyframes aurora {
+  from { background-position: 160% 0, 0 0, 0 0; }
+  to { background-position: -60% 0, 0 0, 0 0; }
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes orb-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3%, -4%, 0) scale(1.12); }
+}
+.float-slow { animation: float-y 5s ease-in-out infinite; }
+
+/* شاشة الدخول: خلفية فضائية بكرات ضوء وشبكة */
+.login-bg {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--hd1), var(--hd2));
+}
+.login-bg::before,
+.login-bg::after {
+  content: '';
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: orb-drift 14s ease-in-out infinite;
+}
+.login-bg::before {
+  width: 24rem;
+  height: 24rem;
+  top: -8rem;
+  inset-inline-end: -6rem;
+  background: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.login-bg::after {
+  width: 22rem;
+  height: 22rem;
+  bottom: -9rem;
+  inset-inline-start: -6rem;
+  background: color-mix(in srgb, #c0556a 50%, transparent);
+  animation-delay: -6s;
+}
+.login-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, #000, transparent 70%);
+  mask-image: radial-gradient(circle at 50% 40%, #000, transparent 70%);
+}
+.login-card {
+  position: relative;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+@media print {
+  body::before,
+  .dock {
+    display: none !important;
+  }
+}
