@@ -20,3 +20,24 @@ export function parseNumber(text: string): number | null {
   const n = Number(cleaned)
   return Number.isFinite(n) ? n : null
 }
+
+import type { ComponentUnit } from '../types/db'
+
+export const COMPONENT_UNITS: { value: ComponentUnit; label: string }[] = [
+  { value: 'g', label: 'جم' },
+  { value: 'kg', label: 'كجم' },
+  { value: 'ml', label: 'مل' },
+  { value: 'l', label: 'لتر' },
+]
+
+export const UNIT_LABEL: Record<ComponentUnit, string> = { g: 'جم', kg: 'كجم', ml: 'مل', l: 'لتر' }
+
+/** «20 جم» أو «1 كجم» */
+export function formatComponent(amount: number, unit: ComponentUnit): string {
+  return `${formatNumber(amount, 3)} ${UNIT_LABEL[unit]}`
+}
+
+/** إجمالي الوزن بالجرام لمكونات الوزن فقط (جم/كجم). السوائل ما بتتجمعش مع الوزن */
+export function totalWeightGrams(rows: { amount: number; unit: ComponentUnit }[]): number {
+  return rows.reduce((sum, r) => (r.unit === 'g' ? sum + r.amount : r.unit === 'kg' ? sum + r.amount * 1000 : sum), 0)
+}

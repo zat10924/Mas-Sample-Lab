@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Icon } from '../../components/Icon'
 import { callFunction } from '../../lib/functions'
 import { errorMessage, PageTitle } from '../../components/ui'
 
@@ -61,7 +62,7 @@ export default function AssistantPage() {
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-13rem)] max-w-3xl flex-col lg:min-h-[calc(100dvh-9rem)]">
-      <PageTitle title="المساعد الذكي" subtitle="اسأل عن الجليز والحرق والعيوب" />
+      <PageTitle icon="sparkles" title="المساعد الذكي" subtitle="اسأل عن الجليز والحرق والعيوب" />
 
       <div className="flex-1 space-y-3">
         {messages.length === 0 && (
@@ -107,7 +108,8 @@ export default function AssistantPage() {
           maxLength={2000}
         />
         <button type="submit" className="btn-primary shrink-0" disabled={busy || !input.trim()}>
-          إرسال
+            <Icon name="send" size={16} />
+            إرسال
         </button>
       </form>
     </div>

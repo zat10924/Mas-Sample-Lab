@@ -124,6 +124,7 @@ export default function ResultCard({
           </p>
           {canWrite && (
             <button type="button" className="btn-secondary mt-2 w-full" onClick={useAiSuggestion}>
+              <Icon name="sparkles" size={16} />
               استخدم الاقتراح في التقييم
             </button>
           )}
@@ -231,6 +232,7 @@ export default function ResultCard({
             disabled={!previewCode || review.isPending}
             onClick={() => review.mutate()}
           >
+            <Icon name="checkCircle" size={18} />
             {review.isPending ? 'جاري الحفظ...' : result.final_code ? 'تحديث الاعتماد' : 'اعتماد النتيجة'}
           </button>
           {review.error && <ErrorBox error={review.error} />}

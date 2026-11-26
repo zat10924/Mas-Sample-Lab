@@ -130,6 +130,48 @@
     border-color: var(--gold);
     transform: translateY(-1px);
   }
+  /* كروت القوائم: شريط جانبي ملوّن + حركة رفع ناعمة */
+  .pro-card {
+    @apply relative block overflow-hidden rounded-2xl border border-line bg-surface p-4 ps-5 transition duration-200;
+    box-shadow: var(--sh);
+  }
+  .pro-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(60, 20, 30, 0.14);
+  }
+  .pro-card:active {
+    transform: scale(0.985);
+  }
+  .avatar {
+    @apply grid h-11 w-11 shrink-0 place-items-center rounded-xl text-base font-extrabold;
+  }
+  .chip {
+    @apply inline-flex max-w-full items-center truncate rounded-lg bg-tint px-2 py-1 text-xs font-medium text-ink;
+  }
+  .chip-more {
+    @apply bg-brand-50 font-bold text-brand-800;
+  }
+  /* بانر الترحيب في لوحة التحكم */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(135deg, var(--hd1), var(--hd2));
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+    box-shadow: 0 10px 30px rgba(66, 27, 36, 0.28);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset-inline-end: -3rem;
+    top: -3rem;
+    height: 11rem;
+    width: 11rem;
+    border-radius: 9999px;
+    background: radial-gradient(circle, color-mix(in srgb, var(--gold) 45%, transparent), transparent 70%);
+    pointer-events: none;
+  }
   .row-diff {
     background: color-mix(in srgb, var(--gold) 14%, transparent);
   }
@@ -214,4 +256,68 @@
     animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ===== ورقة الطباعة (PDF): بتظهر في الطباعة بس، بألوان ثابتة مش متأثرة بالوضع الليلي ===== */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+.print-sheet {
+  color: #111;
+  background: #fff;
+  font-size: 11.5pt;
+  line-height: 1.55;
+}
+.print-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12pt;
+  border-bottom: 3px solid #642631;
+  padding-bottom: 8pt;
+  margin-bottom: 12pt;
+}
+.print-brand { font-size: 17pt; font-weight: 800; color: #642631; }
+.print-doc { font-size: 10.5pt; color: #666; }
+.print-meta { text-align: end; font-size: 10pt; color: #555; }
+.print-code { font-size: 15pt; font-weight: 800; color: #111; }
+.print-title { font-size: 20pt; font-weight: 800; margin: 4pt 0 8pt; }
+.print-h2 { font-size: 13pt; font-weight: 800; margin: 14pt 0 4pt; color: #642631; }
+.print-kv {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3pt 18pt;
+  margin: 6pt 0;
+}
+.print-kv b { color: #666; font-weight: 500; }
+.print-table { width: 100%; border-collapse: collapse; margin: 6pt 0; }
+.print-table th,
+.print-table td { border: 1px solid #8a8a8a; padding: 5pt 8pt; text-align: start; }
+.print-table th { background: #efe9e2; font-weight: 700; }
+.print-table tr { break-inside: avoid; }
+.print-table .num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.print-table .tick { width: 22pt; text-align: center; }
+.print-table .total td { background: #f6f2ec; font-weight: 800; }
+.print-box { display: inline-block; width: 11pt; height: 11pt; border: 1.5px solid #555; border-radius: 2pt; }
+.print-note { border: 1px solid #bbb; border-radius: 6pt; padding: 6pt 10pt; margin: 6pt 0; white-space: pre-wrap; }
+.print-img { max-height: 90mm; max-width: 100%; border-radius: 6pt; border: 1px solid #bbb; object-fit: contain; }
+.print-foot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18pt;
+  margin-top: 30pt;
+  font-size: 10pt;
+  color: #555;
+  break-inside: avoid;
+}
+.print-foot span { display: block; border-top: 1px solid #888; padding-top: 4pt; text-align: center; }
+.print-result {
+  display: inline-block;
+  border: 2px solid #111;
+  border-radius: 6pt;
+  padding: 2pt 10pt;
+  font-size: 15pt;
+  font-weight: 800;
+  direction: ltr;
 }

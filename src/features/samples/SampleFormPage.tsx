@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Icon } from '../../components/Icon'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getSample, listSamples, saveSample } from './api'
+import { getSample, listComponents, listSamples, saveComponents, saveSample } from './api'
+import ComponentsEditor, { newRow, type ComponentRow } from './ComponentsEditor'
 import { getRecipe, listRecipes } from '../recipes/api'
 import AmountsTable from '../recipes/AmountsTable'
 import { useAuth } from '../auth/AuthProvider'
-import { ErrorBox, Field, PageTitle, Spinner } from '../../components/ui'
-import { parseNumber } from '../../lib/units'
+import { ErrorBox, Field, PageTitle, Spinner, SectionTitle } from '../../components/ui'
+import { ingredientGrams, parseNumber } from '../../lib/units'
 import { useToast } from '../../components/Toast'
 
 const APPLICATION_METHODS = ['غمس', 'رش', 'فرشاة', 'سكب']
@@ -39,6 +41,8 @@ export default function SampleFormPage() {
   const [firingDate, setFiringDate] = useState(isEdit ? '' : todayLocal())
   const [method, setMethod] = useState(searchParams.get('method') ?? '')
   const [notes, setNotes] = useState('')
+  const [rows, setRows] = useState<ComponentRow[]>([])
+  const fromId = searchParams.get('from')
   const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -52,6 +56,16 @@ export default function SampleFormPage() {
     setMethod(s.application_method ?? '')
     setNotes(s.notes ?? '')
   }, [existing.data])
+
+  const srcComponents = useQuery({
+    queryKey: ['components', isEdit ? id : fromId],
+    queryFn: () => listComponents((isEdit ? id : fromId) as string),
+    enabled: isEdit || !!fromId,
+  })
+  useEffect(() => {
+    if (!srcComponents.data) return
+    setRows(srcComponents.data.map((c) => newRow({ material: c.material, amount: String(c.amount), unit: c.unit })))
+  }, [srcComponents.data])
 
   const selectedRecipe = useQuery({
     queryKey: ['recipe', recipeId],
@@ -76,6 +90,27 @@ export default function SampleFormPage() {
     setMethod(lastSimilar.application_method ?? '')
     toast(`اتنسخت إعدادات ${lastSimilar.code}`, 'info')
   }
+  const materialSuggestions = useMemo(() => {
+    const set = new Set<string>(['جليز شفاف', 'ماء'])
+    for (const r of recipes.data ?? []) for (const i of r.ingredients) set.add(i.material)
+    for (const x of allSamples.data ?? []) for (const c of x.components) set.add(c.material)
+    return [...set].sort((a, b) => a.localeCompare(b, 'ar'))
+  }, [recipes.data, allSamples.data])
+
+  /** يحمّل مكونات تركيبة بالكميات المحسوبة على كمية الجليز المكتوبة */
+  async function loadFromRecipe(rid: string) {
+    const r = await getRecipe(rid)
+    const k = parseNumber(batchKg) ?? 1
+    const loaded: ComponentRow[] = [
+      newRow({ material: 'جليز شفاف', amount: String(Number(k.toFixed(3))), unit: 'kg' }),
+      ...r.ingredients.map((i) =>
+        newRow({ material: i.material, amount: String(Number(ingredientGrams(i.amount, r.basis, k).toFixed(2))), unit: 'g' }),
+      ),
+    ]
+    setRows((prev) => (prev.some((p) => p.material.trim() !== '') ? [...prev, ...loaded] : loaded))
+    if (!recipeId) setRecipeId(rid)
+    toast(`اتحمّلت مكونات ${r.code}`, 'info')
+  }
   const tempNum = parseNumber(firingTemp)
   const tempWarn =
     tempNum !== null && (tempNum < 600 || tempNum > 1450) ? 'الدرجة دي غريبة على الجليز، راجعها (المعتاد 900–1300°م)' : undefined
@@ -85,7 +120,17 @@ export default function SampleFormPage() {
       const kg = parseNumber(batchKg)
       if (kg === null || kg <= 0) throw new Error('اكتب الكمية بالكيلوجرام (أكبر من صفر)')
       const temp = parseNumber(firingTemp)
-      return saveSample(id ?? null, {
+      // مكونات العينة: نتجاهل الصفوف الفاضية تمامًا، ونرفض صف ناقص
+      const components: { material: string; amount: number; unit: ComponentRow['unit'] }[] = []
+      for (const r of rows) {
+        const material = r.material.trim()
+        if (material === '' && r.amount.trim() === '') continue
+        if (material === '') throw new Error('فيه مكوّن من غير اسم')
+        const amount = parseNumber(r.amount)
+        if (amount === null || amount < 0) throw new Error(`اكتب كمية صحيحة للمكوّن: ${material}`)
+        components.push({ material, amount, unit: r.unit })
+      }
+      const sampleId = await saveSample(id ?? null, {
         recipe_id: recipeId || null,
         body_type: bodyType.trim() || null,
         batch_kg: kg,
@@ -94,10 +139,13 @@ export default function SampleFormPage() {
         application_method: method || null,
         notes: notes.trim() || null,
       })
+      await saveComponents(sampleId, components)
+      return sampleId
     },
     onSuccess: async (sampleId) => {
       await queryClient.invalidateQueries({ queryKey: ['samples'] })
       await queryClient.invalidateQueries({ queryKey: ['sample', sampleId] })
+      await queryClient.invalidateQueries({ queryKey: ['components'] })
       toast(isEdit ? 'اتحفظت التعديلات' : 'اتسجّلت العينة')
       navigate(`/samples/${sampleId}`, { replace: true })
     },
@@ -123,12 +171,26 @@ export default function SampleFormPage() {
   return (
     <form onSubmit={onSubmit} className="mx-auto max-w-3xl space-y-4">
       <PageTitle
-        title={isEdit ? 'تعديل العينة' : 'عينة جديدة'}
+        icon="vase" title={isEdit ? 'تعديل العينة' : 'عينة جديدة'}
         subtitle={isEdit ? existing.data?.code : 'الكود هيتولد تلقائي بعد الحفظ'}
       />
 
+      <div className="card space-y-3">
+        <div className="flex items-center justify-between">
+          <SectionTitle icon="layers">مكونات العينة</SectionTitle>
+          <span className="text-xs text-faint">العينة بتتكوّن من إيه؟</span>
+        </div>
+        <ComponentsEditor
+          rows={rows}
+          onChange={setRows}
+          suggestions={materialSuggestions}
+          recipes={(recipes.data ?? []).map((r) => ({ id: r.id, label: `${r.code} · ${r.name}` }))}
+          onLoadRecipe={loadFromRecipe}
+        />
+      </div>
+
       <div className="card space-y-4">
-        <Field label="التركيبة">
+        <Field icon="flask" label="التركيبة الأساسية (اختياري)">
           <select className="input" value={recipeId} onChange={(e) => setRecipeId(e.target.value)}>
             <option value="">— من غير تركيبة —</option>
             {(recipes.data ?? []).map((r) => (
@@ -153,7 +215,7 @@ export default function SampleFormPage() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="كمية الجليز (كجم)">
+          <Field icon="weight" label="كمية الجليز الأساسي (كجم)">
             <input
               className="input"
               inputMode="decimal"
@@ -162,7 +224,7 @@ export default function SampleFormPage() {
               required
             />
           </Field>
-          <Field label="نوع البدن">
+          <Field icon="vase" label="نوع البدن">
             <input
               className="input"
               list="body-type-list"
@@ -178,7 +240,7 @@ export default function SampleFormPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="درجة الحرق (°م)" hint={tempWarn}>
+          <Field icon="thermometer" label="درجة الحرق (°م)" hint={tempWarn}>
             <input
               className="input"
               inputMode="numeric"
@@ -186,7 +248,7 @@ export default function SampleFormPage() {
               onChange={(e) => setFiringTemp(e.target.value)}
             />
           </Field>
-          <Field label="تاريخ الحرق">
+          <Field icon="calendar" label="تاريخ الحرق">
             <input
               type="date"
               className="input"
@@ -196,7 +258,7 @@ export default function SampleFormPage() {
           </Field>
         </div>
 
-        <Field label="طريقة التطبيق">
+        <Field icon="brush" label="طريقة التطبيق">
           <select className="input" value={method} onChange={(e) => setMethod(e.target.value)}>
             <option value="">— اختر —</option>
             {APPLICATION_METHODS.map((m) => (
@@ -207,7 +269,7 @@ export default function SampleFormPage() {
           </select>
         </Field>
 
-        <Field label="ملاحظات (تعديلات على التركيبة، سمك الطبقة...)">
+        <Field icon="fileText" label="ملاحظات (تعديلات على التركيبة، سمك الطبقة...)">
           <textarea
             className="input min-h-[5rem]"
             value={notes}
@@ -218,7 +280,7 @@ export default function SampleFormPage() {
 
       {recipeId && (
         <div className="card space-y-2">
-          <h2 className="font-semibold">الكميات المطلوبة</h2>
+          <SectionTitle icon="weight">الكميات المرجعية من التركيبة</SectionTitle>
           {selectedRecipe.isLoading && <Spinner />}
           {selectedRecipe.data && kg > 0 && <AmountsTable recipe={selectedRecipe.data} kg={kg} />}
         </div>
@@ -228,9 +290,11 @@ export default function SampleFormPage() {
 
       <div className="flex gap-2">
         <button type="submit" className="btn-primary flex-1" disabled={save.isPending}>
+          <Icon name="save" size={18} />
           {save.isPending ? 'جاري الحفظ...' : 'حفظ العينة'}
         </button>
         <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
+          <Icon name="x" size={16} />
           إلغاء
         </button>
       </div>

@@ -52,8 +52,9 @@ export function parseQuickEntry(raw: string): QuickEntry | null {
 }
 
 /** رابط نموذج عينة جديدة معبّأ مسبقًا */
-export function sampleFormUrl(p: { recipeId?: string | null; kg?: number | string | null; temp?: number | string | null; method?: string | null; body?: string | null }): string {
+export function sampleFormUrl(p: { from?: string | null; recipeId?: string | null; kg?: number | string | null; temp?: number | string | null; method?: string | null; body?: string | null }): string {
   const q = new URLSearchParams()
+  if (p.from) q.set('from', p.from)
   if (p.recipeId) q.set('recipe', p.recipeId)
   if (p.kg != null && p.kg !== '') q.set('kg', String(p.kg))
   if (p.temp != null && p.temp !== '') q.set('temp', String(p.temp))
@@ -61,4 +62,43 @@ export function sampleFormUrl(p: { recipeId?: string | null; kg?: number | strin
   if (p.body) q.set('body', p.body)
   const qs = q.toString()
   return `/samples/new${qs ? `?${qs}` : ''}`
+}
+
+/* ---------- لصق المكونات دفعة واحدة ---------- */
+import type { ComponentUnit } from '../types/db'
+
+export interface ComponentDraft {
+  material: string
+  amount: string
+  unit: ComponentUnit
+}
+
+const UNIT_PATTERNS: { unit: ComponentUnit; re: RegExp }[] = [
+  { unit: 'kg', re: /^(?:كجم|كيلو|كغم|كغ|كج|kg|kgs)$/i },
+  { unit: 'g', re: /^(?:جم|جرام|غرام|جر|غم|g|gm|gr|gram|grams)$/i },
+  { unit: 'ml', re: /^(?:مل|ملل|ملي|ml)$/i },
+  { unit: 'l', re: /^(?:لتر|ل|l|ltr|liter)$/i },
+]
+
+/** يفهم: «جليز شفاف 1 كجم + أكسيد نحاس 20 جم + فريت 50» (الفاصل: + أو سطر جديد أو فاصلة) */
+export function parseComponents(raw: string): ComponentDraft[] {
+  const text = normalizeDigits(raw)
+  const chunks = text
+    .split(/[\n+،;]|,(?!\d)/)
+    .map((c) => c.trim())
+    .filter(Boolean)
+  const out: ComponentDraft[] = []
+  for (const chunk of chunks) {
+    const m = /(\d+(?:[.,]\d+)?)\s*([A-Za-z\u0600-\u06FF]{0,6})/.exec(chunk)
+    if (!m) {
+      out.push({ material: chunk, amount: '', unit: 'g' })
+      continue
+    }
+    const unitHit = UNIT_PATTERNS.find((u) => u.re.test(m[2]))
+    const unit: ComponentUnit = unitHit?.unit ?? 'g'
+    // لو الكلمة بعد الرقم مش وحدة (يعني جزء من الاسم) نرجّعها للاسم
+    const rest = (unitHit ? chunk.replace(m[0], ' ') : chunk.replace(m[1], ' ')).replace(/\s+/g, ' ').trim()
+    out.push({ material: rest.replace(/^[-–:×x]\s*|\s*[-–:×x]$/g, '').trim(), amount: m[1].replace(',', '.'), unit })
+  }
+  return out.filter((r) => r.material !== '' || r.amount !== '')
 }

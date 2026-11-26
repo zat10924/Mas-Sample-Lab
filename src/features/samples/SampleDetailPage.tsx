@@ -6,12 +6,16 @@ import ResultCard from './ResultCard'
 import AmountsTable from '../recipes/AmountsTable'
 import { getRecipe } from '../recipes/api'
 import { useAuth } from '../auth/AuthProvider'
-import { ErrorBox, PageTitle, Spinner, StatusBadge, STATUS_LABELS } from '../../components/ui'
-import { Icon } from '../../components/Icon'
+import { ErrorBox, PageTitle, Spinner, StatusBadge, STATUS_LABELS, SectionTitle } from '../../components/ui'
+import { Icon, type IconName } from '../../components/Icon'
 import { useToast } from '../../components/Toast'
 import { sampleFormUrl } from '../../lib/quickEntry'
+import { listComponents } from './api'
+import { formatComponent, formatNumber, totalWeightGrams } from '../../lib/units'
 import { buildSampleMessage, clearGroupLink, copyAndOpenGroup, shareToWhatsApp } from '../../lib/whatsapp'
 import PasswordConfirm from '../../components/PasswordConfirm'
+import { printDocument } from '../../lib/export'
+import SamplePrint from './SamplePrint'
 import type { SampleStatus } from '../../types/db'
 
 export default function SampleDetailPage() {
@@ -22,6 +26,11 @@ export default function SampleDetailPage() {
   const { toast } = useToast()
   const fileInput = useRef<HTMLInputElement>(null)
   const [askDelete, setAskDelete] = useState(false)
+  const components = useQuery({
+    queryKey: ['components', id],
+    queryFn: () => listComponents(id as string),
+    enabled: !!id,
+  })
   const [waNote, setWaNote] = useState<string | null>(null)
 
   const sample = useQuery({ queryKey: ['sample', id], queryFn: () => getSample(id), enabled: !!id })
@@ -61,9 +70,10 @@ export default function SampleDetailPage() {
   if (!s) return <ErrorBox error="العينة غير موجودة" />
 
   return (
-    <div className="space-y-4">
+    <>
+    <div className="space-y-4 print:hidden">
       <PageTitle
-        title={s.code}
+        icon="vase" title={s.code}
         subtitle={s.recipe ? `${s.recipe.name} (${s.recipe.code})` : 'بدون تركيبة'}
         action={
           <div className="flex gap-2">
@@ -76,6 +86,7 @@ export default function SampleDetailPage() {
                     s,
                     (results.data ?? []).find((r) => r.final_code)?.final_code ?? null,
                     window.location.href,
+                    components.data ?? [],
                   ),
                 )
               }
@@ -85,6 +96,7 @@ export default function SampleDetailPage() {
             </button>
             {canWrite && (
               <Link to={`/samples/${s.id}/edit`} className="btn-secondary">
+                <Icon name="pencil" size={16} />
                 تعديل
               </Link>
             )}
@@ -95,6 +107,14 @@ export default function SampleDetailPage() {
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <button
           type="button"
+          className="btn-secondary !px-3 !py-2"
+          onClick={() => printDocument(`${s.code}${s.recipe ? ` - ${s.recipe.name}` : ''}`)}
+        >
+          <Icon name="print" size={16} />
+          طباعة PDF
+        </button>
+        <button
+          type="button"
           className="btn-ghost !px-3 !py-2"
           onClick={async () =>
             setWaNote(
@@ -103,6 +123,7 @@ export default function SampleDetailPage() {
                   s,
                   (results.data ?? []).find((r) => r.final_code)?.final_code ?? null,
                   window.location.href,
+                  components.data ?? [],
                 ),
               ),
             )
@@ -113,7 +134,7 @@ export default function SampleDetailPage() {
         </button>
         {canWrite && (
           <Link
-            to={sampleFormUrl({ recipeId: s.recipe_id, kg: s.batch_kg, temp: s.firing_temp, method: s.application_method, body: s.body_type })}
+            to={sampleFormUrl({ from: s.id, recipeId: s.recipe_id, kg: s.batch_kg, temp: s.firing_temp, method: s.application_method, body: s.body_type })}
             className="btn-ghost !px-3 !py-2"
           >
             <Icon name="copy" size={16} />
@@ -130,7 +151,10 @@ export default function SampleDetailPage() {
         <div className="space-y-4 lg:col-span-2">
           <div className="card space-y-3 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-mute">الحالة</span>
+              <span className="flex items-center gap-2 text-mute">
+                <Icon name="target" size={15} className="shrink-0 text-faint" />
+                الحالة
+              </span>
               {canWrite ? (
                 <select
                   className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
@@ -147,27 +171,59 @@ export default function SampleDetailPage() {
                 <StatusBadge status={s.status} />
               )}
             </div>
-            <Row label="كمية الجليز" value={`${s.batch_kg} كجم`} />
-            <Row label="نوع البدن" value={s.body_type} />
-            <Row label="درجة الحرق" value={s.firing_temp ? `${s.firing_temp}°م` : null} />
-            <Row label="تاريخ الحرق" value={s.firing_date} />
-            <Row label="طريقة التطبيق" value={s.application_method} />
-            <Row label="تاريخ التسجيل" value={new Date(s.created_at).toLocaleDateString('en-GB')} />
+            <Row icon="weight" label="كمية الجليز الأساسي" value={`${s.batch_kg} كجم`} />
+            <Row icon="vase" label="نوع البدن" value={s.body_type} />
+            <Row icon="thermometer" label="درجة الحرق" value={s.firing_temp ? `${s.firing_temp}°م` : null} />
+            <Row icon="calendar" label="تاريخ الحرق" value={s.firing_date} />
+            <Row icon="brush" label="طريقة التطبيق" value={s.application_method} />
+            <Row icon="clock" label="تاريخ التسجيل" value={new Date(s.created_at).toLocaleDateString('en-GB')} />
             {s.notes && (
-              <div className="border-t border-line pt-2 text-mute">{s.notes}</div>
+              <div className="flex items-start gap-2 border-t border-line pt-2 text-mute">
+                <Icon name="fileText" size={15} className="mt-0.5 shrink-0 text-faint" />
+                <span className="min-w-0 whitespace-pre-wrap">{s.notes}</span>
+              </div>
             )}
           </div>
 
+          {components.data && components.data.length > 0 && (
+            <div className="card space-y-3">
+              <div className="flex items-center justify-between">
+                <SectionTitle icon="layers">مكونات العينة</SectionTitle>
+                <span className="badge bg-brand-50 text-brand-800">{components.data.length} مكوّن</span>
+              </div>
+              <ol className="divide-y divide-line">
+                {components.data.map((c, i) => (
+                  <li key={c.id} className="flex items-center gap-3 py-2 text-sm">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tint text-xs font-bold text-mute">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate font-medium">{c.material}</span>
+                    <span className="shrink-0 font-bold tabular-nums text-brand-800">{formatComponent(c.amount, c.unit)}</span>
+                  </li>
+                ))}
+              </ol>
+              {totalWeightGrams(components.data) > 0 && (
+                <div className="flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">
+                  <span>إجمالي الوزن</span>
+                  <span className="font-bold tabular-nums">
+                    {formatNumber(totalWeightGrams(components.data))} جم
+                    {totalWeightGrams(components.data) >= 1000 && ` (${formatNumber(totalWeightGrams(components.data) / 1000, 3)} كجم)`}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {recipe.data && (
             <div className="card space-y-2">
-              <h2 className="font-semibold">الكميات المطلوبة</h2>
+              <SectionTitle icon="weight">الكميات المطلوبة</SectionTitle>
               <AmountsTable recipe={recipe.data} kg={s.batch_kg} />
             </div>
           )}
         </div>
         <div className="lg:col-span-3">
           <div className="space-y-3">
-            <h2 className="font-semibold">صور ونتائج ما بعد الحرق</h2>
+            <SectionTitle icon="image">صور ونتائج ما بعد الحرق</SectionTitle>
 
             {canWrite && (
               <>
@@ -230,13 +286,18 @@ export default function SampleDetailPage() {
         onClose={() => setAskDelete(false)}
       />
     </div>
+    <SamplePrint sample={s} components={components.data ?? []} recipe={recipe.data} results={results.data ?? []} />
+    </>
   )
 }
 
-function Row({ label, value }: { label: string; value: string | null }) {
+function Row({ label, value, icon }: { label: string; value: string | null; icon?: IconName }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-mute">{label}</span>
+    <div className="flex items-center justify-between gap-3">
+      <span className="flex items-center gap-2 text-mute">
+        {icon && <Icon name={icon} size={15} className="shrink-0 text-faint" />}
+        {label}
+      </span>
       <span className="font-medium text-ink">{value || '—'}</span>
     </div>
   )

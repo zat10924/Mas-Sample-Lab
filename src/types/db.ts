@@ -65,6 +65,18 @@ export interface Sample {
   updated_at: string
 }
 
+export type ComponentUnit = 'g' | 'kg' | 'ml' | 'l'
+
+/** مكوّن في العينة: جليز شفاف 1 كجم، أكسيد نحاس 20 جم... */
+export interface SampleComponent {
+  id: string
+  sample_id: string
+  material: string
+  amount: number
+  unit: ComponentUnit
+  sort_order: number
+}
+
 export type Finish = 'G' | 'S' | 'M'
 export type ColorMatch = 1 | 2 | 3
 
@@ -96,6 +108,7 @@ export interface SampleResult {
 export interface SampleListItem extends Sample {
   recipe: Pick<Recipe, 'code' | 'name'> | null
   results: Pick<SampleResult, 'final_code'>[]
+  components: Pick<SampleComponent, 'material' | 'amount' | 'unit' | 'sort_order'>[]
 }
 
 export interface SampleDetail extends Sample {

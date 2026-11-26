@@ -1,12 +1,14 @@
 import { supabase } from './supabase'
 import { describeResultCode } from './codes'
-import type { SampleDetail } from '../types/db'
+import type { SampleComponent, SampleDetail } from '../types/db'
+import { formatComponent } from './units'
 
 /** نص رسالة العينة للمشاركة اليدوية */
-export function buildSampleMessage(s: SampleDetail, finalCode: string | null, url: string): string {
+export function buildSampleMessage(s: SampleDetail, finalCode: string | null, url: string, components: SampleComponent[] = []): string {
   const lines = [
     `🏺 عينة ${s.code}`,
     s.recipe ? `التركيبة: ${s.recipe.name} (${s.recipe.code})` : null,
+    components.length > 0 ? `المكونات:\n${components.map((c) => `• ${c.material}: ${formatComponent(c.amount, c.unit)}`).join('\n')}` : null,
     s.firing_temp ? `الحرق: ${s.firing_temp}°م` : null,
     finalCode ? `النتيجة: ${finalCode}` : 'النتيجة: لسه ما اتقيّمتش',
     finalCode ? describeResultCode(finalCode) : null,

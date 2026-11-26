@@ -28,6 +28,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://bzhxdikcyxkdojwlswhq.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_NDJle8iKFHVTezQ_CTjeqg_Usd42lkZ
+          VITE_WHATSAPP_AUTO: ${{ vars.VITE_WHATSAPP_AUTO }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

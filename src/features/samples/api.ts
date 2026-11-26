@@ -4,7 +4,9 @@ import { callFunction } from '../../lib/functions'
 import { buildResultCode } from '../../lib/codes'
 import type {
   ColorMatch,
+  ComponentUnit,
   Finish,
+  SampleComponent,
   SampleDetail,
   SampleListItem,
   SampleResult,
@@ -13,13 +15,64 @@ import type {
 
 const BUCKET = 'lab-sample-images'
 
+/** نص خطأ واضح لو جدول المكونات لسه ما اتعملش في Supabase */
+function isMissingComponents(error: { message?: string; code?: string } | null): boolean {
+  if (!error) return false
+  const m = (error.message ?? '').toLowerCase()
+  return error.code === 'PGRST200' || error.code === '42P01' || error.code === 'PGRST205' || m.includes('lab_sample_components')
+}
+
 export async function listSamples(): Promise<SampleListItem[]> {
-  const { data, error } = await supabase
+  const full = await supabase
+    .from('lab_samples')
+    .select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code), components:lab_sample_components(material,amount,unit,sort_order)')
+    .order('created_at', { ascending: false })
+  if (!full.error) return (full.data ?? []) as SampleListItem[]
+  if (!isMissingComponents(full.error)) throw full.error
+
+  // جدول المكونات لسه ما اتعملش (004): نكمّل بدونه بدل ما البرنامج يقف
+  const basic = await supabase
     .from('lab_samples')
     .select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code)')
     .order('created_at', { ascending: false })
+  if (basic.error) throw basic.error
+  return ((basic.data ?? []) as Omit<SampleListItem, 'components'>[]).map((x) => ({ ...x, components: [] }))
+}
+
+export async function listComponents(sampleId: string): Promise<SampleComponent[]> {
+  const { data, error } = await supabase
+    .from('lab_sample_components')
+    .select('*')
+    .eq('sample_id', sampleId)
+    .order('sort_order', { ascending: true })
+  if (error) {
+    if (isMissingComponents(error)) return []
+    throw error
+  }
+  return (data ?? []) as SampleComponent[]
+}
+
+export interface ComponentInput {
+  material: string
+  amount: number
+  unit: ComponentUnit
+}
+
+/** يستبدل مكونات العينة بالقائمة الجديدة */
+export async function saveComponents(sampleId: string, rows: ComponentInput[]): Promise<void> {
+  const del = await supabase.from('lab_sample_components').delete().eq('sample_id', sampleId)
+  if (del.error) {
+    if (isMissingComponents(del.error)) {
+      if (rows.length === 0) return
+      throw new Error('جدول مكونات العينة مش موجود: شغّل ملف 004_sample_components.sql في Supabase الأول')
+    }
+    throw del.error
+  }
+  if (rows.length === 0) return
+  const { error } = await supabase.from('lab_sample_components').insert(
+    rows.map((r, i) => ({ sample_id: sampleId, material: r.material.trim(), amount: r.amount, unit: r.unit, sort_order: i })),
+  )
   if (error) throw error
-  return (data ?? []) as SampleListItem[]
 }
 
 export async function getSample(id: string): Promise<SampleDetail> {

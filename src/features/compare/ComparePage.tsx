@@ -1,18 +1,19 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listRecipes, getRecipe } from '../recipes/api'
-import { getSignedUrl, getSample, listResults, listSamples } from '../samples/api'
+import { getSignedUrl, getSample, listComponents, listResults, listSamples } from '../samples/api'
 import { ErrorBox, PageTitle, Spinner, StatusBadge } from '../../components/ui'
+import { Icon, type IconName } from '../../components/Icon'
 import { RECIPE_TYPE_LABELS, describeResultCode } from '../../lib/codes'
-import { formatNumber, ingredientGrams } from '../../lib/units'
+import { formatNumber, ingredientGrams, formatComponent } from '../../lib/units'
 import type { RecipeWithIngredients, SampleDetail, SampleResult } from '../../types/db'
 
 type Kind = 'recipes' | 'samples'
 
 function Tabs({ kind, onChange }: { kind: Kind; onChange: (k: Kind) => void }) {
-  const tabs: { value: Kind; label: string }[] = [
-    { value: 'recipes', label: 'تركيبات' },
-    { value: 'samples', label: 'عينات' },
+  const tabs: { value: Kind; label: string; icon: IconName }[] = [
+    { value: 'recipes', label: 'تركيبات', icon: 'flask' },
+    { value: 'samples', label: 'عينات', icon: 'vase' },
   ]
   return (
     <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-tint p-1 lg:max-w-xs">
@@ -21,8 +22,9 @@ function Tabs({ kind, onChange }: { kind: Kind; onChange: (k: Kind) => void }) {
           key={t.value}
           type="button"
           onClick={() => onChange(t.value)}
-          className={`rounded-lg py-2 text-sm font-bold ${kind === t.value ? 'bg-surface text-brand-800 shadow-sm' : 'text-mute'}`}
+          className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-bold transition-colors ${kind === t.value ? 'bg-surface text-brand-800 shadow-sm' : 'text-mute'}`}
         >
+          <Icon name={t.icon} size={16} />
           {t.label}
         </button>
       ))}
@@ -158,6 +160,8 @@ function SampleCompare({ a, b }: { a: SampleDetail; b: SampleDetail }) {
   const ra = useQuery({ queryKey: ['results', a.id], queryFn: () => listResults(a.id) })
   const rb = useQuery({ queryKey: ['results', b.id], queryFn: () => listResults(b.id) })
   const pick = (r: SampleResult[] | undefined) => r?.find((x) => x.final_code) ?? r?.[0]
+  const ca = useQuery({ queryKey: ['components', a.id], queryFn: () => listComponents(a.id) })
+  const cb = useQuery({ queryKey: ['components', b.id], queryFn: () => listComponents(b.id) })
   const resA = pick(ra.data)
   const resB = pick(rb.data)
 
@@ -190,6 +194,25 @@ function SampleCompare({ a, b }: { a: SampleDetail; b: SampleDetail }) {
           </div>
         </div>
       </div>
+
+      {((ca.data?.length ?? 0) > 0 || (cb.data?.length ?? 0) > 0) && (
+        <div className="card divide-y divide-line !p-0">
+          <div className="px-3 py-2 text-sm font-bold">المكونات</div>
+          {[...new Set([...(ca.data ?? []).map((c) => c.material), ...(cb.data ?? []).map((c) => c.material)])].map((m) => {
+            const x = (ca.data ?? []).find((c) => c.material === m)
+            const y = (cb.data ?? []).find((c) => c.material === m)
+            const tx = x ? formatComponent(x.amount, x.unit) : '—'
+            const ty = y ? formatComponent(y.amount, y.unit) : '—'
+            return (
+              <div key={m} className={`grid grid-cols-[5.5rem_1fr_1fr] gap-2 px-3 py-2 text-sm ${tx !== ty ? 'row-diff' : ''}`}>
+                <div className="min-w-0 break-words text-mute">{m}</div>
+                <div>{tx}</div>
+                <div>{ty}</div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       <div className="card divide-y divide-line !p-0">
         {rows.map((r) => (
@@ -246,7 +269,7 @@ export default function ComparePage() {
 
   return (
     <div>
-      <PageTitle title="المقارنة" subtitle="قارن عنصرين جنب بعض وشوف الفروق" />
+      <PageTitle icon="compare" title="المقارنة" subtitle="قارن عنصرين جنب بعض وشوف الفروق" />
       <Tabs kind={kind} onChange={(k) => update({ type: k, a: '', b: '' })} />
 
       {listLoading && <Spinner />}

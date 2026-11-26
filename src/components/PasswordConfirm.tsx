@@ -110,6 +110,7 @@ export default function PasswordConfirm({
             {busy ? 'لحظة...' : confirmLabel}
           </button>
           <button type="button" className="btn-secondary flex-1" disabled={busy} onClick={onClose}>
+            <Icon name="x" size={16} />
             إلغاء
           </button>
         </div>

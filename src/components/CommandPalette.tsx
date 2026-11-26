@@ -94,7 +94,8 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
           (s.recipe?.name ?? '').toLowerCase().includes(q) ||
           (s.recipe?.code ?? '').toLowerCase().includes(q) ||
           (finalCodeOf(s) ?? '').toLowerCase().includes(q) ||
-          (s.body_type ?? '').toLowerCase().includes(q),
+          (s.body_type ?? '').toLowerCase().includes(q) ||
+          s.components.some((c) => c.material.toLowerCase().includes(q)),
       )
       .slice(0, 6)
     for (const s of sm) {

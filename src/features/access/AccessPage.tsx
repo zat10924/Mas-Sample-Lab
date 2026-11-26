@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
-import { Empty, ErrorBox, PageTitle, Spinner } from '../../components/ui'
+import { Empty, ErrorBox, PageTitle, SearchBox, Spinner } from '../../components/ui'
+import { Icon, type IconName } from '../../components/Icon'
 import { LEVEL_AR, ROLE_AR } from '../../lib/roles'
 import type { LabUser } from '../../types/db'
 
@@ -15,6 +16,12 @@ async function listUsers(): Promise<LabUser[]> {
 async function setAccess(userId: string, level: string): Promise<void> {
   const { error } = await supabase.rpc('lab_set_access', { p_user: userId, p_level: level })
   if (error) throw error
+}
+
+const LEVEL_ICON: Record<string, { icon: IconName; tone: string }> = {
+  edit: { icon: 'pencil', tone: 'bg-emerald-100 text-emerald-700' },
+  view: { icon: 'eye', tone: 'bg-sky-100 text-sky-700' },
+  none: { icon: 'lock', tone: 'bg-red-100 text-red-700' },
 }
 
 export default function AccessPage() {
@@ -39,16 +46,11 @@ export default function AccessPage() {
   return (
     <div>
       <PageTitle
-        title="صلاحيات المختبر"
+        icon="shield" title="صلاحيات المختبر"
         subtitle="تحكم في وصول كل مستخدم للمختبر (حتى المدراء). المدير وصاحب المصنع عندهم وصول افتراضي وتقدر تسحبه منهم"
       />
 
-      <input
-        className="input mb-3 lg:max-w-md"
-        placeholder="ابحث بالاسم..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <SearchBox className="mb-3 lg:max-w-md" placeholder="ابحث بالاسم..." value={search} onChange={setSearch} />
 
       {users.isLoading && <Spinner />}
       {users.error && <ErrorBox error={users.error} />}
@@ -60,9 +62,17 @@ export default function AccessPage() {
           const self = u.id === me?.id
           return (
             <div key={u.id} className="card flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="truncate font-bold text-ink">{u.full_name || 'بدون اسم'}</div>
-                <div className="text-xs text-mute">{ROLE_AR[u.role] ?? u.role}</div>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${(LEVEL_ICON[u.level ?? 'none'] ?? LEVEL_ICON.none).tone}`}>
+                  <Icon name={(LEVEL_ICON[u.level ?? 'none'] ?? LEVEL_ICON.none).icon} size={20} />
+                </span>
+                <div className="min-w-0">
+                  <div className="truncate font-bold text-ink">{u.full_name || 'بدون اسم'}</div>
+                  <div className="flex items-center gap-1 text-xs text-mute">
+                    <Icon name="user" size={12} />
+                    {ROLE_AR[u.role] ?? u.role}
+                  </div>
+                </div>
               </div>
               {self ? (
                 <span className="badge bg-brand-50 text-brand-800">

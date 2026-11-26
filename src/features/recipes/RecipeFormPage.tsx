@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRecipe, listRecipes, saveRecipe, type IngredientInput } from './api'
 import { useAuth } from '../auth/AuthProvider'
-import { ErrorBox, Field, PageTitle, Spinner } from '../../components/ui'
+import { ErrorBox, Field, PageTitle, Spinner, SectionTitle } from '../../components/ui'
 import { Icon } from '../../components/Icon'
 import { nextRecipeCode, RECIPE_TYPE_LABELS } from '../../lib/codes'
 import { parseNumber } from '../../lib/units'
@@ -157,15 +157,15 @@ export default function RecipeFormPage() {
           <option key={m} value={m} />
         ))}
       </datalist>
-      <PageTitle title={isEdit ? 'تعديل التركيبة' : 'تركيبة جديدة'} />
+      <PageTitle icon="flask" title={isEdit ? 'تعديل التركيبة' : 'تركيبة جديدة'} />
 
       <div className="card space-y-4">
-        <Field label="الاسم">
+        <Field icon="tag" label="الاسم">
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="النوع">
+          <Field icon="palette" label="النوع">
             <select
               className="input"
               value={type}
@@ -178,7 +178,7 @@ export default function RecipeFormPage() {
               ))}
             </select>
           </Field>
-          <Field label="الكود">
+          <Field icon="hash" label="الكود">
             <input
               dir="ltr"
               className="input text-start"
@@ -211,7 +211,7 @@ export default function RecipeFormPage() {
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="وزن الخلطة الكبيرة (كجم)" hint="اختياري">
+          <Field icon="weight" label="وزن الخلطة الكبيرة (كجم)" hint="اختياري">
             <input
               className="input"
               inputMode="decimal"
@@ -219,7 +219,7 @@ export default function RecipeFormPage() {
               onChange={(e) => setBatchKg(e.target.value)}
             />
           </Field>
-          <Field label="الكثافة (g/cm³)" hint="اختياري">
+          <Field icon="droplet" label="الكثافة (g/cm³)" hint="اختياري">
             <input
               className="input"
               inputMode="decimal"
@@ -229,7 +229,7 @@ export default function RecipeFormPage() {
           </Field>
         </div>
 
-        <Field label="ملاحظات">
+        <Field icon="fileText" label="ملاحظات">
           <textarea
             className="input min-h-[5rem]"
             value={notes}
@@ -239,7 +239,7 @@ export default function RecipeFormPage() {
       </div>
 
       <div className="card space-y-3">
-        <h2 className="font-semibold">المكوّنات</h2>
+        <SectionTitle icon="layers">المكوّنات</SectionTitle>
         {rows.map((row) => (
           <div key={row.key} className="rounded-xl border border-line p-3">
             <div className="grid grid-cols-2 gap-2">
@@ -288,9 +288,11 @@ export default function RecipeFormPage() {
 
       <div className="flex gap-2">
         <button type="submit" className="btn-primary flex-1" disabled={save.isPending}>
+          <Icon name="save" size={18} />
           {save.isPending ? 'جاري الحفظ...' : 'حفظ'}
         </button>
         <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
+          <Icon name="x" size={16} />
           إلغاء
         </button>
       </div>

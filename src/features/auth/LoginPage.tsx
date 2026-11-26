@@ -67,38 +67,46 @@ export default function LoginPage() {
         <form onSubmit={onSubmit} className="card space-y-4">
           <div>
             <label className="label" htmlFor="identity">الاسم</label>
+            <div className="relative">
+              <Icon name="user" size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-faint" />
             <input
               id="identity"
-              className="input"
+              className="input !ps-10"
               value={identity}
               onChange={(e) => setIdentity(e.target.value)}
               autoComplete="username"
               placeholder="نفس اسم الدخول في برنامج المصنع"
               required
             />
+            </div>
           </div>
 
           <div>
             <label className="label" htmlFor="password">كلمة المرور</label>
+            <div className="relative">
+              <Icon name="lock" size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-faint" />
             <input
               id="password"
               type="password"
               dir="ltr"
-              className="input text-start"
+              className="input !ps-10 text-start"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               required
             />
+            </div>
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+              <Icon name="alert" size={18} className="mt-0.5 shrink-0" />
               {error}
             </div>
           )}
 
           <button type="submit" className="btn-primary w-full" disabled={busy}>
+            <Icon name="key" size={18} />
             {busy ? 'لحظة...' : 'دخول'}
           </button>
 

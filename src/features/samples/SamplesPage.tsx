@@ -3,21 +3,23 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listSamples } from './api'
 import { useAuth } from '../auth/AuthProvider'
-import { Empty, ErrorBox, ListSkeleton, PageTitle, StatusBadge, STATUS_LABELS } from '../../components/ui'
-import { Icon } from '../../components/Icon'
+import { Empty, ErrorBox, ListSkeleton, PageTitle, SearchBox, StatusBadge, STATUS_LABELS } from '../../components/ui'
+import { Icon, type IconName } from '../../components/Icon'
+import SampleCard from './SampleCard'
 import { COLOR_OPTIONS, DEFECT_OPTIONS, FINISH_OPTIONS, parseResultCode } from '../../lib/codes'
 import { finalCodeOf } from '../../lib/stats'
 import { downloadCsv } from '../../lib/export'
+import { formatComponent } from '../../lib/units'
 import type { SampleStatus } from '../../types/db'
 
 type Filter = 'all' | SampleStatus
 type Sort = 'newest' | 'oldest' | 'temp_desc' | 'temp_asc' | 'code'
 
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'الكل' },
-  { value: 'planned', label: STATUS_LABELS.planned },
-  { value: 'fired', label: STATUS_LABELS.fired },
-  { value: 'reviewed', label: STATUS_LABELS.reviewed },
+const FILTERS: { value: Filter; label: string; icon: IconName }[] = [
+  { value: 'all', label: 'الكل', icon: 'grid' },
+  { value: 'planned', label: STATUS_LABELS.planned, icon: 'clock' },
+  { value: 'fired', label: STATUS_LABELS.fired, icon: 'flame' },
+  { value: 'reviewed', label: STATUS_LABELS.reviewed, icon: 'checkCircle' },
 ]
 
 const SORTS: { value: Sort; label: string }[] = [
@@ -86,7 +88,8 @@ export default function SamplesPage() {
         (s.recipe?.code ?? '').toLowerCase().includes(q) ||
         (s.body_type ?? '').toLowerCase().includes(q) ||
         (s.application_method ?? '').toLowerCase().includes(q) ||
-        (s.notes ?? '').toLowerCase().includes(q)
+        (s.notes ?? '').toLowerCase().includes(q) ||
+        s.components.some((c) => c.material.toLowerCase().includes(q))
       )
     })
     const byTemp = (a: number | null, b: number | null, dir: 1 | -1) =>
@@ -109,11 +112,12 @@ export default function SamplesPage() {
 
   function exportFiltered() {
     downloadCsv(`mas-samples-filtered-${new Date().toISOString().slice(0, 10)}.csv`, [
-      ['كود العينة', 'التركيبة', 'كود التركيبة', 'البدن', 'الكمية كجم', 'الحرارة', 'تاريخ الحرق', 'الحالة', 'النتيجة'],
+      ['كود العينة', 'التركيبة', 'كود التركيبة', 'المكونات', 'البدن', 'الكمية كجم', 'الحرارة', 'تاريخ الحرق', 'الحالة', 'النتيجة'],
       ...items.map((s) => [
         s.code,
         s.recipe?.name ?? '',
         s.recipe?.code ?? '',
+        s.components.map((c) => `${c.material} ${formatComponent(c.amount, c.unit)}`).join(' + '),
         s.body_type ?? '',
         s.batch_kg,
         s.firing_temp ?? '',
@@ -127,7 +131,7 @@ export default function SamplesPage() {
   return (
     <div>
       <PageTitle
-        title="العينات"
+        icon="vase" title="العينات"
         subtitle={data ? `${items.length} من ${data.length} عينة` : undefined}
         action={
           canWrite ? (
@@ -140,12 +144,7 @@ export default function SamplesPage() {
       />
 
       <div className="mb-3 flex gap-2 lg:max-w-2xl">
-        <input
-          className="input min-w-0 flex-1"
-          placeholder="ابحث بالكود أو التركيبة أو الملاحظات..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <SearchBox className="min-w-0 flex-1" placeholder="ابحث بالكود أو التركيبة أو مكوّن..." value={search} onChange={setSearch} />
         <button
           type="button"
           onClick={() => setShowAdv((v) => !v)}
@@ -267,10 +266,11 @@ export default function SamplesPage() {
               key={f.value}
               type="button"
               onClick={() => setFilter(f.value)}
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
-                filter === f.value ? 'bg-brand-700 text-white' : 'border border-line bg-surface text-mute'
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                filter === f.value ? 'bg-brand-700 text-white shadow-sm' : 'border border-line bg-surface text-mute hover:bg-tint'
               }`}
             >
+              <Icon name={f.icon} size={15} />
               {f.label}
             </button>
           ))}
@@ -296,31 +296,9 @@ export default function SamplesPage() {
       )}
 
       <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {items.map((s) => {
-          const finalCode = finalCodeOf(s)
-          return (
-            <Link key={s.id} to={`/samples/${s.id}`} className="card-link">
-              <div className="flex items-center justify-between gap-2">
-                <span dir="ltr" className="font-bold text-ink">
-                  {s.code}
-                </span>
-                <StatusBadge status={s.status} />
-              </div>
-              <div className="mt-1 truncate text-sm text-mute">
-                {s.recipe ? `${s.recipe.name} (${s.recipe.code})` : 'بدون تركيبة'}
-              </div>
-              <div className="mt-1 flex items-center gap-3 text-xs text-faint">
-                <span>{new Date(s.created_at).toLocaleDateString('en-GB')}</span>
-                {s.firing_temp && <span>{s.firing_temp}°م</span>}
-                {finalCode && (
-                  <span dir="ltr" className="badge bg-brand-50 text-brand-800">
-                    {finalCode}
-                  </span>
-                )}
-              </div>
-            </Link>
-          )
-        })}
+        {items.map((s) => (
+          <SampleCard key={s.id} sample={s} />
+        ))}
       </div>
     </div>
   )

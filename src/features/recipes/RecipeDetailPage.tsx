@@ -4,10 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { archiveRecipe, deleteRecipe, getRecipe, RecipeInUseError } from './api'
 import AmountsTable from './AmountsTable'
 import { useAuth } from '../auth/AuthProvider'
-import { ErrorBox, PageTitle, Spinner } from '../../components/ui'
+import { ErrorBox, PageTitle, SectionTitle, Spinner } from '../../components/ui'
 import PasswordConfirm from '../../components/PasswordConfirm'
 import { Icon } from '../../components/Icon'
 import { RECIPE_TYPE_LABELS } from '../../lib/codes'
+import { printDocument } from '../../lib/export'
+import RecipePrint from './RecipePrint'
 import { formatGrams, formatNumber, ingredientGrams, parseNumber } from '../../lib/units'
 
 export default function RecipeDetailPage() {
@@ -67,16 +69,29 @@ export default function RecipeDetailPage() {
   const hasBatch = recipe.batch_base_kg !== null
 
   return (
-    <div className="space-y-4">
+    <>
+    <div className="space-y-4 print:hidden">
       <PageTitle
-        title={recipe.name}
+        icon="flask" title={recipe.name}
         subtitle={`${recipe.code} · ${RECIPE_TYPE_LABELS[recipe.type]}`}
         action={
-          canWrite ? (
-            <Link to={`/recipes/${recipe.id}/edit`} className="btn-secondary">
-              تعديل
-            </Link>
-          ) : undefined
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => printDocument(`${recipe.code} - ${recipe.name} - ${formatNumber(entered, 3)} كجم`)}
+              disabled={!(kg > 0)}
+            >
+              <Icon name="print" size={16} />
+              PDF
+            </button>
+            {canWrite && (
+              <Link to={`/recipes/${recipe.id}/edit`} className="btn-secondary">
+                <Icon name="pencil" size={16} />
+                تعديل
+              </Link>
+            )}
+          </div>
         }
       />
 
@@ -140,18 +155,26 @@ export default function RecipeDetailPage() {
             )}
 
             {recipe.density !== null && (
-              <p className="text-sm text-mute">الكثافة: {formatNumber(recipe.density)} g/cm³</p>
+              <p className="flex items-center gap-2 text-sm text-mute">
+                <Icon name="droplet" size={15} className="text-faint" />
+                الكثافة: {formatNumber(recipe.density)} g/cm³
+              </p>
             )}
           </div>
         </div>
 
         <div className="space-y-4">
           {recipe.notes && (
-            <div className="card text-sm text-mute">{recipe.notes}</div>
+            <div className="card flex items-start gap-2 text-sm text-mute">
+              <Icon name="fileText" size={16} className="mt-0.5 shrink-0 text-faint" />
+              <span className="min-w-0 whitespace-pre-wrap">{recipe.notes}</span>
+            </div>
           )}
           {hasBatch && (
             <div className="card">
-              <h2 className="mb-2 font-semibold">الخلطة الكبيرة ({formatNumber(recipe.batch_base_kg ?? 0)} كجم جليز شفاف)</h2>
+              <div className="mb-3">
+                <SectionTitle icon="box">الخلطة الكبيرة ({formatNumber(recipe.batch_base_kg ?? 0)} كجم جليز شفاف)</SectionTitle>
+              </div>
               <ul className="space-y-1 text-sm">
                 {recipe.ingredients.map((ing) => (
                   <li key={ing.id} className="flex justify-between border-b border-line py-1 last:border-0">
@@ -212,5 +235,7 @@ export default function RecipeDetailPage() {
         onClose={() => setAskDelete(false)}
       />
     </div>
+    <RecipePrint recipe={recipe} kg={kg} entered={entered} mode={mode} />
+    </>
   )
 }

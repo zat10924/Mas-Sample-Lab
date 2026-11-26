@@ -1,3 +1,4 @@
+import { Icon, type IconName } from './Icon'
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
 
 type Tone = 'success' | 'error' | 'info'
@@ -21,7 +22,7 @@ const TONE_STYLE: Record<Tone, string> = {
   error: 'bg-red-600 text-white',
   info: 'bg-ink text-surface',
 }
-const TONE_MARK: Record<Tone, string> = { success: '✓', error: '!', info: 'i' }
+const TONE_ICON: Record<Tone, IconName> = { success: 'check', error: 'alert', info: 'info' }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
@@ -48,7 +49,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             className={`toast-in pointer-events-auto flex max-w-sm items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold shadow-lg ${TONE_STYLE[t.tone]}`}
           >
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/25 text-xs">{TONE_MARK[t.tone]}</span>
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white/25">
+              <Icon name={TONE_ICON[t.tone]} size={14} strokeWidth={2.4} />
+            </span>
             {t.text}
           </div>
         ))}

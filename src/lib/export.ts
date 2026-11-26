@@ -20,3 +20,17 @@ export function downloadCsv(filename: string, rows: (string | number | null | un
 export function printPage(): void {
   window.print()
 }
+
+/** يطبع الصفحة بعنوان مخصص (بيبقى اسم ملف الـ PDF) ويرجّع العنوان القديم بعد الطباعة */
+export function printDocument(title: string): void {
+  const old = document.title
+  document.title = title
+  const restore = () => {
+    document.title = old
+    window.removeEventListener('afterprint', restore)
+  }
+  window.addEventListener('afterprint', restore)
+  window.print()
+  // احتياطي لو afterprint ما اتطلقش (بعض متصفحات الموبايل)
+  window.setTimeout(restore, 60_000)
+}
