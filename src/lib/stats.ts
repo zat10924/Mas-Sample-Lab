@@ -25,7 +25,7 @@ export function finalCodeOf(s: SampleListItem): string | null {
   return s.results.find((r) => r.final_code)?.final_code ?? null
 }
 
-const MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+export const MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
 
 export function computeStats(samples: SampleListItem[], monthsBack = 6): LabStats {
   const finishes = new Map<string, number>()

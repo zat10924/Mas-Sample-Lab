@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { enqueuePhoto } from '../../lib/photoQueue'
 import { addResultImage, deleteSample, getSample, listResults, updateSampleStatus } from './api'
 import ResultCard from './ResultCard'
 import AmountsTable from '../recipes/AmountsTable'
@@ -26,6 +27,7 @@ export default function SampleDetailPage() {
   const { canWrite } = useAuth()
   const { toast } = useToast()
   const fileInput = useRef<HTMLInputElement>(null)
+  const cameraInput = useRef<HTMLInputElement>(null)
   const [askDelete, setAskDelete] = useState(false)
   const components = useQuery({
     queryKey: ['components', id],
@@ -50,8 +52,30 @@ export default function SampleDetailPage() {
   }
 
   const upload = useMutation({
-    mutationFn: (file: File) => addResultImage(id, file),
-    onSuccess: refresh,
+    // networkMode always: لازم تشتغل حتى بدون نت عشان نحفظ الصورة على الجهاز بدل ما تستنى
+    networkMode: 'always',
+    mutationFn: async (file: File) => {
+      if (!navigator.onLine) {
+        await enqueuePhoto(id, file)
+        return null
+      }
+      try {
+        return await addResultImage(id, file)
+      } catch (e) {
+        if (!navigator.onLine) {
+          await enqueuePhoto(id, file)
+          return null
+        }
+        throw e
+      }
+    },
+    onSuccess: async (saved) => {
+      if (saved === null) {
+        toast('مفيش نت: الصورة اتحفظت على الجهاز وهتترفع لوحدها لما النت يرجع', 'info')
+        return
+      }
+      await refresh()
+    },
   })
   const changeStatus = useMutation({
     mutationFn: (status: SampleStatus) => updateSampleStatus(id, status),
@@ -238,11 +262,23 @@ export default function SampleDetailPage() {
                     e.target.value = ''
                   }}
                 />
+                <input
+                  ref={cameraInput}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) upload.mutate(file)
+                    e.target.value = ''
+                  }}
+                />
                 <button
                   type="button"
                   className="btn-primary w-full"
                   disabled={upload.isPending}
-                  onClick={() => fileInput.current?.click()}
+                  onClick={() => cameraInput.current?.click()}
                 >
                   {upload.isPending ? (
                     <>
@@ -255,6 +291,14 @@ export default function SampleDetailPage() {
                       أضف صورة العينة بعد الحرق
                     </>
                   )}
+                </button>
+                <button
+                  type="button"
+                  className="btn-ghost w-full text-sm"
+                  disabled={upload.isPending}
+                  onClick={() => fileInput.current?.click()}
+                >
+                  اختيار صورة من المعرض
                 </button>
                 {upload.error && <ErrorBox error={upload.error} />}
               </>

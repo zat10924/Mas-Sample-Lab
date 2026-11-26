@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { MAIN_APP_URL } from '../../lib/mainApp'
 import { Icon } from '../../components/Icon'
 import { useAuth } from './AuthProvider'
+import { readReturnPath } from '../../lib/returnTo'
 import { errorMessage } from '../../components/ui'
 import logo from '../../assets/logo-login.png'
 
@@ -24,7 +25,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (session) return <Navigate to="/" replace />
+  if (session) return <Navigate to={readReturnPath()} replace />
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()

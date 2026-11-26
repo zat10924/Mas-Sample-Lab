@@ -45,7 +45,7 @@ const EMPTY_ADV: Advanced = { recipe: '', finish: '', color: '', defect: '', fro
 
 export default function SamplesPage() {
   const { canWrite } = useAuth()
-  const { data, isLoading, error } = useQuery({ queryKey: ['samples'], queryFn: listSamples })
+  const { data, isLoading, error } = useQuery({ queryKey: ['samples'], queryFn: () => listSamples() })
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [sort, setSort] = useState<Sort>('newest')

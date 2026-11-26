@@ -196,7 +196,12 @@ export default function ResultCard({
           </div>
 
           <div>
-            <div className="label">العيوب</div>
+            <div className="mb-1 flex items-center justify-between">
+              <div className="label !mb-0">العيوب</div>
+              <button type="button" className="text-xs font-bold text-emerald-700" onClick={() => setDefects([])}>
+                بدون عيوب
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               {DEFECT_OPTIONS.map((o) => (
                 <label
@@ -230,15 +235,17 @@ export default function ResultCard({
             </span>
           </div>
 
-          <button
-            type="button"
-            className="btn-primary w-full"
-            disabled={!previewCode || review.isPending}
-            onClick={() => review.mutate()}
-          >
-            <Icon name="checkCircle" size={18} />
-            {review.isPending ? 'بنحفظ' : result.final_code ? 'تحديث الاعتماد' : 'اعتماد النتيجة'}
-          </button>
+          <div className="sticky bottom-[4.75rem] z-10 -mx-1 bg-surface px-1 py-2 lg:bottom-0">
+            <button
+              type="button"
+              className="btn-primary w-full"
+              disabled={!previewCode || review.isPending}
+              onClick={() => review.mutate()}
+            >
+              <Icon name="checkCircle" size={18} />
+              {review.isPending ? 'بنحفظ' : result.final_code ? 'تحديث الاعتماد' : 'اعتماد النتيجة'}
+            </button>
+          </div>
           {review.error && <ErrorBox error={review.error} />}
 
           <button

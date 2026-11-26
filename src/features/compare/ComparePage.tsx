@@ -243,7 +243,7 @@ export default function ComparePage() {
   }
 
   const recipes = useQuery({ queryKey: ['recipes'], queryFn: listRecipes, enabled: kind === 'recipes' })
-  const samples = useQuery({ queryKey: ['samples'], queryFn: listSamples, enabled: kind === 'samples' })
+  const samples = useQuery({ queryKey: ['samples'], queryFn: () => listSamples(), enabled: kind === 'samples' })
 
   const options =
     kind === 'recipes'

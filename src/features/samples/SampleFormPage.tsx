@@ -33,7 +33,7 @@ export default function SampleFormPage() {
     enabled: isEdit,
   })
   const recipes = useQuery({ queryKey: ['recipes'], queryFn: listRecipes })
-  const allSamples = useQuery({ queryKey: ['samples'], queryFn: listSamples })
+  const allSamples = useQuery({ queryKey: ['samples'], queryFn: () => listSamples() })
 
   const [recipeId, setRecipeId] = useState(searchParams.get('recipe') ?? '')
   const [bodyType, setBodyType] = useState(searchParams.get('body') ?? '')

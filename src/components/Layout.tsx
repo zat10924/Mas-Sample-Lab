@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthProvider'
 import { MAIN_APP_URL } from '../lib/mainApp'
-import { ROLE_AR, toggleTheme } from '../lib/roles'
+import { ROLE_AR, applyStoredFontSize, toggleTheme } from '../lib/roles'
 import icon from '../assets/icon-192.png'
 import { Icon, type IconName } from './Icon'
 import CommandPalette from './CommandPalette'
+import SettingsMenu from './SettingsMenu'
+import OfflineStatus from './OfflineStatus'
 
 interface NavItem {
   to: string
@@ -27,6 +29,11 @@ export default function Layout() {
   const { me, isAdmin, canWrite, signOut } = useAuth()
   const location = useLocation()
   const [paletteOpen, setPaletteOpen] = useState(false)
+
+  // حجم الخط المحفوظ من قائمة الإعدادات
+  useEffect(() => {
+    applyStoredFontSize()
+  }, [])
 
   // Ctrl+K / Cmd+K لفتح البحث الشامل
   useEffect(() => {
@@ -125,57 +132,31 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* ===== الموبايل: شريط علوي ===== */}
+      {/* ===== الموبايل: شريط علوي (الهوية + بحث + إعدادات) ===== */}
       <header className="topbar sticky top-0 z-20 text-white lg:hidden">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2.5">
-          <img src={icon} alt="MAS" className="h-9 w-9 rounded-lg" />
-          <div className="min-w-0 leading-tight">
+          <img src={icon} alt="MAS" className="h-10 w-10 rounded-xl" />
+          <div className="min-w-0 flex-1 leading-tight">
             <div className="truncate text-base font-extrabold">
               مختبر <span className="text-gold-light">الماس</span>
             </div>
-            <div className="truncate text-[11px] text-white/70">
-              {me?.name ? `${me.name} · ` : ''}
-              {roleLine}
-            </div>
+            {me?.name && <div className="truncate text-xs text-white/70">{me.name}</div>}
           </div>
-          <span className="flex-1" />
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
             aria-label="بحث سريع"
-            className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 hover:bg-white/25"
+            className="grid h-10 w-10 place-items-center rounded-xl bg-white/15 transition-colors hover:bg-white/25"
           >
-            <Icon name="search" size={16} />
+            <Icon name="search" size={19} />
           </button>
-          <a
-            href={MAIN_APP_URL}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25"
-          >
-            <Icon name="factory" size={14} />
-            المصنع
-          </a>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label="تبديل الوضع الليلي"
-            className="grid h-8 w-8 place-items-center rounded-lg bg-white/15 hover:bg-white/25"
-          >
-            <Icon name="contrast" size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            aria-label="خروج"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25"
-          >
-            <Icon name="logout" size={14} />
-            خروج
-          </button>
+          <SettingsMenu />
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-4 pb-28 pt-5 lg:ps-64 lg:max-w-none lg:pb-12 lg:pt-0">
         <div className="mx-auto lg:max-w-6xl lg:px-10 lg:py-10">
+          <OfflineStatus />
           <div key={location.pathname} className="page-enter">
             <Outlet />
           </div>

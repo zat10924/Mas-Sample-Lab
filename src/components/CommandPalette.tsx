@@ -26,7 +26,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const samples = useQuery({ queryKey: ['samples'], queryFn: listSamples, enabled: open })
+  const samples = useQuery({ queryKey: ['samples'], queryFn: () => listSamples(), enabled: open })
   const recipes = useQuery({ queryKey: ['recipes'], queryFn: listRecipes, enabled: open })
 
   useEffect(() => {

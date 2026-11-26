@@ -22,21 +22,30 @@ function isMissingComponents(error: { message?: string; code?: string } | null):
   return error.code === 'PGRST200' || error.code === '42P01' || error.code === 'PGRST205' || m.includes('lab_sample_components')
 }
 
-export async function listSamples(): Promise<SampleListItem[]> {
-  const full = await supabase
+export interface ListSamplesOptions {
+  /** أحدث N عينة بس (للوحة التحكم) */
+  limit?: number
+  /** عينات بحالة معينة بس */
+  status?: SampleStatus
+}
+
+export async function listSamples(opts: ListSamplesOptions = {}): Promise<SampleListItem[]> {
+  const fullSel = supabase
     .from('lab_samples')
     .select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code), components:lab_sample_components(material,amount,unit,sort_order)')
-    .order('created_at', { ascending: false })
-  if (!full.error) return (full.data ?? []) as SampleListItem[]
+  const fullFiltered = opts.status ? fullSel.eq('status', opts.status) : fullSel
+  const fullOrdered = fullFiltered.order('created_at', { ascending: false })
+  const full = await (opts.limit ? fullOrdered.limit(opts.limit) : fullOrdered)
+  if (!full.error) return (full.data ?? []) as unknown as SampleListItem[]
   if (!isMissingComponents(full.error)) throw full.error
 
   // جدول المكونات لسه ما اتعملش (004): نكمّل بدونه بدل ما البرنامج يقف
-  const basic = await supabase
-    .from('lab_samples')
-    .select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code)')
-    .order('created_at', { ascending: false })
+  const basicSel = supabase.from('lab_samples').select('*, recipe:lab_recipes(code,name), results:lab_sample_results(final_code)')
+  const basicFiltered = opts.status ? basicSel.eq('status', opts.status) : basicSel
+  const basicOrdered = basicFiltered.order('created_at', { ascending: false })
+  const basic = await (opts.limit ? basicOrdered.limit(opts.limit) : basicOrdered)
   if (basic.error) throw basic.error
-  return ((basic.data ?? []) as Omit<SampleListItem, 'components'>[]).map((x) => ({ ...x, components: [] }))
+  return ((basic.data ?? []) as unknown as Omit<SampleListItem, 'components'>[]).map((x) => ({ ...x, components: [] }))
 }
 
 export async function listComponents(sampleId: string): Promise<SampleComponent[]> {

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import PrintSheet from '../../components/PrintSheet'
+import QrCode from '../../components/QrCode'
 import { STATUS_LABELS } from '../../components/ui'
 import { describeResultCode } from '../../lib/codes'
 import { formatComponent, formatGrams, formatNumber, ingredientGrams, totalWeightGrams } from '../../lib/units'
@@ -29,7 +30,13 @@ export default function SamplePrint({
 
   return (
     <PrintSheet docType="ورقة عينة جليز" code={s.code}>
-      <h1 className="print-title">{s.recipe ? `${s.recipe.name} (${s.recipe.code})` : 'عينة بمكونات مخصصة'}</h1>
+      <div className="print-titlerow">
+        <h1 className="print-title">{s.recipe ? `${s.recipe.name} (${s.recipe.code})` : 'عينة بمكونات مخصصة'}</h1>
+        <div className="print-qr">
+          <QrCode value={`${window.location.origin}${window.location.pathname}#/samples/${s.id}`} size={74} />
+          <span>امسح لفتح العينة</span>
+        </div>
+      </div>
 
       <div className="print-kv">
         <div>

@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
+import { CACHE_KEY } from '../../lib/offlineCache'
 import type { LabMe } from '../../types/db'
 
 interface AuthState {
@@ -53,10 +55,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void loadMe()
   }, [loadMe])
 
+  const queryClient = useQueryClient()
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
     setMe(null)
-  }, [])
+    // نمسح النسخة المحلية من البيانات عشان ما تفضلش على الجهاز بعد الخروج
+    queryClient.clear()
+    try {
+      localStorage.removeItem(CACHE_KEY)
+    } catch {
+      // تجاهل
+    }
+  }, [queryClient])
 
   const value = useMemo<AuthState>(() => {
     const level = me?.level ?? null
