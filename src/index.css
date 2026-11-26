@@ -644,7 +644,7 @@
    (مضافة في آخر الملف عشان تغلب القديم؛ الأحجام والهوامش ما اتغيّرتش)
    ===================================================================== */
 :root {
-  --glass: color-mix(in srgb, var(--card) 82%, transparent);
+  --glass: color-mix(in srgb, var(--card) 94%, transparent);
   --glass-line: color-mix(in srgb, var(--gold) 22%, var(--line));
   --glow-gold: 0 10px 34px -10px color-mix(in srgb, var(--gold) 55%, transparent);
   --glow-pri: 0 10px 24px -8px color-mix(in srgb, var(--pri) 60%, transparent);
@@ -664,7 +664,6 @@
     background-image:
       radial-gradient(55rem 34rem at 95% -8%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 62%),
       radial-gradient(48rem 32rem at -8% 6%, color-mix(in srgb, var(--pri) 13%, transparent), transparent 62%);
-    background-attachment: fixed;
   }
   body::before {
     content: '';
@@ -674,8 +673,8 @@
     pointer-events: none;
     background-image: radial-gradient(color-mix(in srgb, var(--ink) 11%, transparent) 1px, transparent 1.2px);
     background-size: 24px 24px;
-    -webkit-mask-image: linear-gradient(to bottom, #000, transparent 65%);
-    mask-image: linear-gradient(to bottom, #000, transparent 65%);
+    height: 55vh;
+    opacity: 0.6;
   }
   ::selection {
     background: color-mix(in srgb, var(--gold) 45%, transparent);
@@ -694,15 +693,11 @@
     border-radius: 1.25rem;
     border-color: var(--glass-line);
     background: var(--glass);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    backdrop-filter: blur(14px) saturate(1.2);
   }
   .pro-card {
     border-radius: 1.4rem;
     border-color: var(--glass-line);
     background: var(--glass);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    backdrop-filter: blur(14px) saturate(1.2);
   }
   .pro-card:hover,
   .card-link:hover {
