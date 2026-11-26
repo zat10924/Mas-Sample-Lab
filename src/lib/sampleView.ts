@@ -35,7 +35,7 @@ export function resultBadgeClass(code: string | null): string {
 export function componentsPreview(s: SampleListItem, max = 3): { items: string[]; more: number } {
   const sorted = [...s.components].sort((a, b) => a.sort_order - b.sort_order)
   return {
-    items: sorted.slice(0, max).map((c) => `${c.material} ${formatComponent(c.amount, c.unit)}`),
+    items: sorted.slice(0, max).map((c) => `${c.material} ${formatComponent(c.amount, c.unit, s.batch_kg)}`),
     more: Math.max(0, sorted.length - max),
   }
 }

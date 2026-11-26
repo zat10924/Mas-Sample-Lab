@@ -117,7 +117,7 @@ export default function SamplesPage() {
         s.code,
         s.recipe?.name ?? '',
         s.recipe?.code ?? '',
-        s.components.map((c) => `${c.material} ${formatComponent(c.amount, c.unit)}`).join(' + '),
+        s.components.map((c) => `${c.material} ${formatComponent(c.amount, c.unit, s.batch_kg)}`).join(' + '),
         s.body_type ?? '',
         s.batch_kg,
         s.firing_temp ?? '',

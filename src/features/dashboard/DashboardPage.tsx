@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { listSamples } from '../samples/api'
 import { useAuth } from '../auth/AuthProvider'
-import { ErrorBox, ListSkeleton, Spinner, SectionTitle } from '../../components/ui'
+import { ErrorBox, ListSkeleton, SectionTitle } from '../../components/ui'
 import SampleCard from '../samples/SampleCard'
 import { Icon, type IconName } from '../../components/Icon'
 import { Bars } from '../../components/Bars'
@@ -72,7 +72,7 @@ export default function DashboardPage() {
         x.code,
         x.recipe?.name ?? '',
         x.recipe?.code ?? '',
-        x.components.map((c) => `${c.material} ${formatComponent(c.amount, c.unit)}`).join(' + '),
+        x.components.map((c) => `${c.material} ${formatComponent(c.amount, c.unit, x.batch_kg)}`).join(' + '),
         x.body_type,
         x.batch_kg,
         x.firing_temp,
@@ -111,7 +111,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {stats.isLoading && <Spinner />}
+      {stats.isLoading && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4" aria-busy="true" aria-label="تحميل">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="skeleton h-24" />
+          ))}
+        </div>
+      )}
       {stats.error && <ErrorBox error={stats.error} />}
       {stats.data && (
         <div className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">

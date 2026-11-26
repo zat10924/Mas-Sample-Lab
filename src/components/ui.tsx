@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { SampleStatus } from '../types/db'
 import { Icon, IconBadge, type IconName } from './Icon'
+import { MiniLoader, PageLoader } from './Loader'
 
 export function errorMessage(e: unknown): string {
   if (e instanceof Error) return e.message
@@ -10,19 +11,15 @@ export function errorMessage(e: unknown): string {
   return 'حدث خطأ غير متوقع'
 }
 
-export function Spinner({ label = 'جاري التحميل...' }: { label?: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3 py-12 text-mute">
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-700 border-t-transparent" />
-      <span className="text-sm">{label}</span>
-    </div>
-  )
+/** مؤشر التحميل الموحّد: هيكل احترافي بدل نص (compact = صغير جوه الكروت) */
+export function Spinner({ compact = false }: { compact?: boolean }) {
+  return compact ? <MiniLoader /> : <PageLoader />
 }
 
 /** هيكل تحميل بدل الدوّامة: كروت رمادية بتلمع لحد ما البيانات توصل */
 export function ListSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="جاري التحميل">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="تحميل">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="skeleton h-[5.5rem]" />
       ))}

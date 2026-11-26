@@ -189,7 +189,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {items.length === 0 && (
             <div className="px-3 py-8 text-center text-sm text-mute">
-              {samples.isLoading || recipes.isLoading ? 'جاري البحث...' : 'مفيش نتائج'}
+              {samples.isLoading || recipes.isLoading ? 'بنبحث...' : 'مفيش نتائج'}
             </div>
           )}
           {items.map((it, i) => {

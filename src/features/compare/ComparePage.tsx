@@ -151,7 +151,7 @@ function ResultImage({ result }: { result: SampleResult | undefined }) {
     staleTime: 30 * 60 * 1000,
   })
   if (!result) return <div className="grid h-40 place-items-center rounded-xl bg-tint text-xs text-faint">لا توجد صورة</div>
-  if (url.isLoading) return <div className="grid h-40 place-items-center rounded-xl bg-tint text-xs text-faint">...</div>
+  if (url.isLoading) return <div className="skeleton h-40" />
   if (!url.data) return <div className="grid h-40 place-items-center rounded-xl bg-tint text-xs text-faint">تعذر تحميل الصورة</div>
   return <img src={url.data} alt="نتيجة العينة" className="h-40 w-full rounded-xl object-cover" loading="lazy" />
 }
@@ -272,7 +272,7 @@ export default function ComparePage() {
       <PageTitle icon="compare" title="المقارنة" subtitle="قارن عنصرين جنب بعض وشوف الفروق" />
       <Tabs kind={kind} onChange={(k) => update({ type: k, a: '', b: '' })} />
 
-      {listLoading && <Spinner />}
+      {listLoading && <Spinner compact />}
       {listError && <ErrorBox error={listError} />}
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:max-w-2xl">
@@ -284,7 +284,7 @@ export default function ComparePage() {
       {!ready && !(a && b && a === b) && (
         <div className="card py-8 text-center text-sm text-mute">اختر عنصرين لعرض المقارنة</div>
       )}
-      {ready && (detailA.isLoading || detailB.isLoading) && <Spinner />}
+      {ready && (detailA.isLoading || detailB.isLoading) && <Spinner compact />}
       {(detailA.error || detailB.error) && <ErrorBox error={detailA.error ?? detailB.error} />}
       {ready && detailA.data && detailB.data && kind === 'recipes' && (
         <RecipeCompare a={detailA.data as RecipeWithIngredients} b={detailB.data as RecipeWithIngredients} />

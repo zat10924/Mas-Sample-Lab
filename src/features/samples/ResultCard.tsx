@@ -5,6 +5,7 @@ import { useToast } from '../../components/Toast'
 import { analyzeResult, deleteResult, getSignedUrl, saveReview } from './api'
 import { ErrorBox } from '../../components/ui'
 import { Icon } from '../../components/Icon'
+import { InlineSpinner } from '../../components/Loader'
 import {
   buildResultCode,
   COLOR_OPTIONS,
@@ -20,7 +21,7 @@ function ResultImage({ path }: { path: string }) {
     queryFn: () => getSignedUrl(path),
     staleTime: 50 * 60 * 1000,
   })
-  if (isLoading) return <div className="h-56 animate-pulse rounded-xl bg-line" />
+  if (isLoading) return <div className="skeleton h-56" />
   if (error || !data) return <div className="rounded-xl bg-tint p-6 text-center text-sm text-mute">تعذّر تحميل الصورة</div>
   return (
     <a href={data} target="_blank" rel="noreferrer">
@@ -138,7 +139,10 @@ export default function ResultCard({
             onClick={() => analyze.mutate()}
           >
             {analyze.isPending ? (
-              'جاري التحليل... (ممكن ياخد 10-20 ثانية)'
+              <>
+                <InlineSpinner />
+                بنحلل الصورة (10-20 ثانية)
+              </>
             ) : (
               <>
                 <Icon name="sparkles" size={18} />
@@ -233,7 +237,7 @@ export default function ResultCard({
             onClick={() => review.mutate()}
           >
             <Icon name="checkCircle" size={18} />
-            {review.isPending ? 'جاري الحفظ...' : result.final_code ? 'تحديث الاعتماد' : 'اعتماد النتيجة'}
+            {review.isPending ? 'بنحفظ' : result.final_code ? 'تحديث الاعتماد' : 'اعتماد النتيجة'}
           </button>
           {review.error && <ErrorBox error={review.error} />}
 

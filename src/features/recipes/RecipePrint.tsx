@@ -27,26 +27,26 @@ export default function RecipePrint({
       <h1 className="print-title">{recipe.name}</h1>
       <div className="print-kv">
         <div>
-          <b>النوع: </b>
+          <b>النوع</b>
           {RECIPE_TYPE_LABELS[recipe.type]}
         </div>
         <div>
-          <b>أساس الحساب: </b>
+          <b>أساس الحساب</b>
           {recipe.basis === 'per_kg' ? 'جرام لكل 1 كجم جليز شفاف' : 'نسبة مئوية من وزن الجليز'}
         </div>
         <div>
-          <b>{mode === 'total' ? 'الوزن النهائي المطلوب: ' : `كمية ${baseLabel}: `}</b>
+          <b>{mode === 'total' ? 'الوزن النهائي المطلوب' : `كمية ${baseLabel}`}</b>
           {formatNumber(entered, 3)} كجم
         </div>
         {mode === 'total' && (
           <div>
-            <b>كمية {baseLabel} المحسوبة: </b>
+            <b>كمية {baseLabel} المحسوبة</b>
             {formatNumber(kg, 3)} كجم
           </div>
         )}
         {recipe.density !== null && (
           <div>
-            <b>الكثافة: </b>
+            <b>الكثافة</b>
             {formatNumber(recipe.density)} g/cm³
           </div>
         )}

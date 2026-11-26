@@ -65,7 +65,8 @@ export interface Sample {
   updated_at: string
 }
 
-export type ComponentUnit = 'g' | 'kg' | 'ml' | 'l'
+/** percent = نسبة مئوية من كمية الجليز الأساسي (batch_kg) */
+export type ComponentUnit = 'g' | 'kg' | 'ml' | 'l' | 'percent'
 
 /** مكوّن في العينة: جليز شفاف 1 كجم، أكسيد نحاس 20 جم... */
 export interface SampleComponent {

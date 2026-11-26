@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Icon } from '../../components/Icon'
+import { InlineSpinner } from '../../components/Loader'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSample, listComponents, listSamples, saveComponents, saveSample } from './api'
 import ComponentsEditor, { newRow, type ComponentRow } from './ComponentsEditor'
@@ -101,10 +102,13 @@ export default function SampleFormPage() {
   async function loadFromRecipe(rid: string) {
     const r = await getRecipe(rid)
     const k = parseNumber(batchKg) ?? 1
+    // التركيبة بالنسبة المئوية: نحمّل المكونات كنسب (والبرنامج يحسب الجرامات)، وبالجرام لكل كيلو: نحسبها بالجرام
     const loaded: ComponentRow[] = [
-      newRow({ material: 'جليز شفاف', amount: String(Number(k.toFixed(3))), unit: 'kg' }),
+      newRow({ material: r.basis === 'percent' ? 'جليز' : 'جليز شفاف', amount: String(Number(k.toFixed(3))), unit: 'kg' }),
       ...r.ingredients.map((i) =>
-        newRow({ material: i.material, amount: String(Number(ingredientGrams(i.amount, r.basis, k).toFixed(2))), unit: 'g' }),
+        r.basis === 'percent'
+          ? newRow({ material: i.material, amount: String(i.amount), unit: 'percent' })
+          : newRow({ material: i.material, amount: String(Number(ingredientGrams(i.amount, r.basis, k).toFixed(2))), unit: 'g' }),
       ),
     ]
     setRows((prev) => (prev.some((p) => p.material.trim() !== '') ? [...prev, ...loaded] : loaded))
@@ -181,6 +185,7 @@ export default function SampleFormPage() {
           <span className="text-xs text-faint">العينة بتتكوّن من إيه؟</span>
         </div>
         <ComponentsEditor
+          batchKg={parseNumber(batchKg) ?? 0}
           rows={rows}
           onChange={setRows}
           suggestions={materialSuggestions}
@@ -215,7 +220,7 @@ export default function SampleFormPage() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <Field icon="weight" label="كمية الجليز الأساسي (كجم)">
+          <Field icon="weight" label="كمية الجليز الأساسي (كجم)" hint="النسب المئوية للمكونات بتتحسب من الرقم ده">
             <input
               className="input"
               inputMode="decimal"
@@ -281,7 +286,7 @@ export default function SampleFormPage() {
       {recipeId && (
         <div className="card space-y-2">
           <SectionTitle icon="weight">الكميات المرجعية من التركيبة</SectionTitle>
-          {selectedRecipe.isLoading && <Spinner />}
+          {selectedRecipe.isLoading && <Spinner compact />}
           {selectedRecipe.data && kg > 0 && <AmountsTable recipe={selectedRecipe.data} kg={kg} />}
         </div>
       )}
@@ -290,8 +295,8 @@ export default function SampleFormPage() {
 
       <div className="flex gap-2">
         <button type="submit" className="btn-primary flex-1" disabled={save.isPending}>
-          <Icon name="save" size={18} />
-          {save.isPending ? 'جاري الحفظ...' : 'حفظ العينة'}
+          {save.isPending ? <InlineSpinner /> : <Icon name="save" size={18} />}
+          {save.isPending ? 'بنحفظ' : 'حفظ العينة'}
         </button>
         <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
           <Icon name="x" size={16} />

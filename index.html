@@ -27,7 +27,18 @@
     <title>مختبر الماس</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- شاشة فتح احترافية بتظهر قبل ما الجافاسكربت يحمّل، وReact بيستبدلها بنفس الشكل -->
+      <div class="splash" role="status" aria-busy="true" aria-label="مختبر الماس">
+        <div class="splash-mark">
+          <span class="splash-ring"></span>
+          <img src="/icons/icon-192.png" alt="" class="splash-logo" />
+        </div>
+        <div class="splash-title">مختبر <span>الماس</span></div>
+        <div class="splash-sub">للخزف والصيني</div>
+        <div class="splash-bar"><i></i></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

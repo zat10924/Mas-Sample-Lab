@@ -26,18 +26,34 @@ import type { ComponentUnit } from '../types/db'
 export const COMPONENT_UNITS: { value: ComponentUnit; label: string }[] = [
   { value: 'g', label: 'جم' },
   { value: 'kg', label: 'كجم' },
+  { value: 'percent', label: '٪ نسبة' },
   { value: 'ml', label: 'مل' },
   { value: 'l', label: 'لتر' },
 ]
 
-export const UNIT_LABEL: Record<ComponentUnit, string> = { g: 'جم', kg: 'كجم', ml: 'مل', l: 'لتر' }
+export const UNIT_LABEL: Record<ComponentUnit, string> = { g: 'جم', kg: 'كجم', ml: 'مل', l: 'لتر', percent: '%' }
 
-/** «20 جم» أو «1 كجم» */
-export function formatComponent(amount: number, unit: ComponentUnit): string {
+/**
+ * وزن المكوّن بالجرام. النسبة المئوية بتتحسب من كمية الجليز الأساسي (كجم).
+ * بترجّع null للسوائل (مل/لتر) أو للنسبة لو كمية الجليز الأساسي مش معروفة.
+ */
+export function componentGrams(c: { amount: number; unit: ComponentUnit }, batchKg?: number | null): number | null {
+  if (c.unit === 'g') return c.amount
+  if (c.unit === 'kg') return c.amount * 1000
+  if (c.unit === 'percent') return batchKg && batchKg > 0 ? (c.amount / 100) * batchKg * 1000 : null
+  return null
+}
+
+/** «20 جم» أو «1 كجم» أو «2% (20 جم)» لو كمية الجليز الأساسي معروفة */
+export function formatComponent(amount: number, unit: ComponentUnit, batchKg?: number | null): string {
+  if (unit === 'percent') {
+    const g = componentGrams({ amount, unit }, batchKg)
+    return g === null ? `${formatNumber(amount, 3)}%` : `${formatNumber(amount, 3)}% (${formatNumber(g)} جم)`
+  }
   return `${formatNumber(amount, 3)} ${UNIT_LABEL[unit]}`
 }
 
-/** إجمالي الوزن بالجرام لمكونات الوزن فقط (جم/كجم). السوائل ما بتتجمعش مع الوزن */
-export function totalWeightGrams(rows: { amount: number; unit: ComponentUnit }[]): number {
-  return rows.reduce((sum, r) => (r.unit === 'g' ? sum + r.amount : r.unit === 'kg' ? sum + r.amount * 1000 : sum), 0)
+/** إجمالي الوزن بالجرام لمكونات الوزن (جم/كجم، والنسبة لو كمية الجليز معروفة). السوائل ما بتتجمعش مع الوزن */
+export function totalWeightGrams(rows: { amount: number; unit: ComponentUnit }[], batchKg?: number | null): number {
+  return rows.reduce((sum, r) => sum + (componentGrams(r, batchKg) ?? 0), 0)
 }

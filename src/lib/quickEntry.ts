@@ -7,6 +7,7 @@ export function normalizeDigits(s: string): string {
     .replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d)))
     .replace(/٫/g, '.')
     .replace(/،/g, ',')
+    .replace(/٪/g, '%')
 }
 
 export const METHODS = ['غمس', 'رش', 'فرشاة', 'سكب']
@@ -89,6 +90,13 @@ export function parseComponents(raw: string): ComponentDraft[] {
     .filter(Boolean)
   const out: ComponentDraft[] = []
   for (const chunk of chunks) {
+    // نسبة مئوية: «2%» أو «2 بالمية» أو «2 في المية»
+    const pm = /(\d+(?:[.,]\d+)?)\s*(?:%|بالمية|بالمائة|بالميه|في المية|في المائة|في الميه)/.exec(chunk)
+    if (pm) {
+      const rest = chunk.replace(pm[0], ' ').replace(/\s+/g, ' ').trim()
+      out.push({ material: rest.replace(/^[-–:×x]\s*|\s*[-–:×x]$/g, '').trim(), amount: pm[1].replace(',', '.'), unit: 'percent' })
+      continue
+    }
     const m = /(\d+(?:[.,]\d+)?)\s*([A-Za-z\u0600-\u06FF]{0,6})/.exec(chunk)
     if (!m) {
       out.push({ material: chunk, amount: '', unit: 'g' })

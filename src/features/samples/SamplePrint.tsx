@@ -25,7 +25,7 @@ export default function SamplePrint({
     enabled: !!main,
     staleTime: 30 * 60 * 1000,
   })
-  const weight = totalWeightGrams(components)
+  const weight = totalWeightGrams(components, s.batch_kg)
 
   return (
     <PrintSheet docType="ورقة عينة جليز" code={s.code}>
@@ -33,31 +33,31 @@ export default function SamplePrint({
 
       <div className="print-kv">
         <div>
-          <b>الحالة: </b>
+          <b>الحالة</b>
           {STATUS_LABELS[s.status]}
         </div>
         <div>
-          <b>تاريخ التسجيل: </b>
+          <b>تاريخ التسجيل</b>
           {new Date(s.created_at).toLocaleDateString('en-GB')}
         </div>
         <div>
-          <b>كمية الجليز الأساسي: </b>
+          <b>كمية الجليز الأساسي</b>
           {formatNumber(s.batch_kg, 3)} كجم
         </div>
         <div>
-          <b>نوع البدن: </b>
+          <b>نوع البدن</b>
           {s.body_type ?? '—'}
         </div>
         <div>
-          <b>درجة الحرق: </b>
+          <b>درجة الحرق</b>
           {s.firing_temp ? `${s.firing_temp}°م` : '—'}
         </div>
         <div>
-          <b>تاريخ الحرق: </b>
+          <b>تاريخ الحرق</b>
           {s.firing_date ?? '—'}
         </div>
         <div>
-          <b>طريقة التطبيق: </b>
+          <b>طريقة التطبيق</b>
           {s.application_method ?? '—'}
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function SamplePrint({
                   <td>{i + 1}</td>
                   <td>{c.material}</td>
                   <td className="num">
-                    <b>{formatComponent(c.amount, c.unit)}</b>
+                    <b>{formatComponent(c.amount, c.unit, s.batch_kg)}</b>
                   </td>
                 </tr>
               ))}

@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './features/auth/AuthProvider'
 import LoginPage from './features/auth/LoginPage'
 import Layout from './components/Layout'
-import { Spinner } from './components/ui'
+import { SplashScreen } from './components/Loader'
 import { Icon } from './components/Icon'
 import { MAIN_APP_URL } from './lib/mainApp'
 import DashboardPage from './features/dashboard/DashboardPage'
@@ -51,7 +51,7 @@ function NoAccessScreen() {
 
 function Protected() {
   const { session, loading, canRead } = useAuth()
-  if (loading) return <Spinner />
+  if (loading) return <SplashScreen />
   if (!session) return <Navigate to="/login" replace />
   if (!canRead) return <NoAccessScreen />
   return <Layout />

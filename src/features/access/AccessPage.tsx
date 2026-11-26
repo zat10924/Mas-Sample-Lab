@@ -52,7 +52,7 @@ export default function AccessPage() {
 
       <SearchBox className="mb-3 lg:max-w-md" placeholder="ابحث بالاسم..." value={search} onChange={setSearch} />
 
-      {users.isLoading && <Spinner />}
+      {users.isLoading && <Spinner compact />}
       {users.error && <ErrorBox error={users.error} />}
       {change.error && <ErrorBox error={change.error} />}
       {!users.isLoading && !users.error && items.length === 0 && <Empty text="مفيش مستخدمين مطابقين" />}

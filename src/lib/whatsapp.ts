@@ -8,7 +8,7 @@ export function buildSampleMessage(s: SampleDetail, finalCode: string | null, ur
   const lines = [
     `🏺 عينة ${s.code}`,
     s.recipe ? `التركيبة: ${s.recipe.name} (${s.recipe.code})` : null,
-    components.length > 0 ? `المكونات:\n${components.map((c) => `• ${c.material}: ${formatComponent(c.amount, c.unit)}`).join('\n')}` : null,
+    components.length > 0 ? `المكونات:\n${components.map((c) => `• ${c.material}: ${formatComponent(c.amount, c.unit, s.batch_kg)}`).join('\n')}` : null,
     s.firing_temp ? `الحرق: ${s.firing_temp}°م` : null,
     finalCode ? `النتيجة: ${finalCode}` : 'النتيجة: لسه ما اتقيّمتش',
     finalCode ? describeResultCode(finalCode) : null,

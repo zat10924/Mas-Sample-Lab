@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '../../components/Icon'
-import { COMPONENT_UNITS, formatNumber, parseNumber, totalWeightGrams } from '../../lib/units'
+import { COMPONENT_UNITS, componentGrams, formatNumber, parseNumber, totalWeightGrams } from '../../lib/units'
 import { parseComponents } from '../../lib/quickEntry'
 import type { ComponentUnit } from '../../types/db'
 
@@ -16,6 +16,8 @@ export function newRow(partial: Partial<ComponentRow> = {}): ComponentRow {
 }
 
 interface Props {
+  /** كمية الجليز الأساسي بالكيلو: الأساس اللي بتتحسب منه النسبة المئوية */
+  batchKg: number
   rows: ComponentRow[]
   onChange: (rows: ComponentRow[]) => void
   suggestions: string[]
@@ -24,7 +26,7 @@ interface Props {
 }
 
 /** محرّر مكونات العينة: لصق سريع + صفوف + تحميل من تركيبة */
-export default function ComponentsEditor({ rows, onChange, suggestions, recipes, onLoadRecipe }: Props) {
+export default function ComponentsEditor({ batchKg, rows, onChange, suggestions, recipes, onLoadRecipe }: Props) {
   const [paste, setPaste] = useState('')
   const [recipePick, setRecipePick] = useState('')
   const [loading, setLoading] = useState(false)
@@ -55,7 +57,9 @@ export default function ComponentsEditor({ rows, onChange, suggestions, recipes,
   const valid = rows
     .map((r) => ({ amount: parseNumber(r.amount), unit: r.unit, material: r.material.trim() }))
     .filter((r): r is { amount: number; unit: ComponentUnit; material: string } => r.amount !== null && r.material !== '')
-  const weight = totalWeightGrams(valid)
+  const weight = totalWeightGrams(valid, batchKg)
+  const hasPercent = valid.some((r) => r.unit === 'percent')
+  const percentSum = valid.filter((r) => r.unit === 'percent').reduce((s, r) => s + r.amount, 0)
   const liquids = valid.filter((r) => r.unit === 'ml' || r.unit === 'l')
 
   return (
@@ -70,12 +74,12 @@ export default function ComponentsEditor({ rows, onChange, suggestions, recipes,
         <label className="label !mb-1.5">اكتب كل المكونات مرة واحدة</label>
         <textarea
           className="input min-h-[4.5rem] text-sm"
-          placeholder="جليز شفاف 1 كجم + أكسيد نحاس 20 جم + فريت 50 جم + كربونات كالسيوم 5 جم"
+          placeholder="جليز شفاف 1 كجم + أكسيد نحاس 2% + فريت 50 جم + كربونات كالسيوم 0.5%"
           value={paste}
           onChange={(e) => setPaste(e.target.value)}
         />
         <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="text-xs text-faint">افصل بين المكونات بـ + أو سطر جديد</span>
+          <span className="text-xs text-faint">افصل بين المكونات بـ + أو سطر جديد. اكتب % للنسبة المئوية</span>
           <button type="button" className="btn-secondary !px-3 !py-2" onClick={addFromPaste} disabled={paste.trim() === ''}>
             <Icon name="plus" size={16} />
             حوّلها لمكونات
@@ -107,13 +111,18 @@ export default function ComponentsEditor({ rows, onChange, suggestions, recipes,
               </button>
             </div>
             <div className="mt-2 grid grid-cols-[1fr_6rem] gap-2 ps-8">
-              <input
-                className="input !py-2"
-                inputMode="decimal"
-                placeholder="الكمية"
-                value={r.amount}
-                onChange={(e) => update(r.key, { amount: e.target.value })}
-              />
+              <div className="relative">
+                <input
+                  className={`input !py-2 ${r.unit === 'percent' ? '!pe-9' : ''}`}
+                  inputMode="decimal"
+                  placeholder={r.unit === 'percent' ? 'النسبة' : 'الكمية'}
+                  value={r.amount}
+                  onChange={(e) => update(r.key, { amount: e.target.value })}
+                />
+                {r.unit === 'percent' && (
+                  <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-700">%</span>
+                )}
+              </div>
               <select
                 className="input !py-2"
                 value={r.unit}
@@ -127,6 +136,15 @@ export default function ComponentsEditor({ rows, onChange, suggestions, recipes,
                 ))}
               </select>
             </div>
+            {r.unit === 'percent' && (
+              <p className="mt-1.5 ps-8 text-xs text-mute">
+                {(() => {
+                  const g = componentGrams({ amount: parseNumber(r.amount) ?? 0, unit: 'percent' }, batchKg)
+                  if (g === null) return 'اكتب كمية الجليز الأساسي عشان نحسب الوزن'
+                  return parseNumber(r.amount) === null ? `النسبة من ${formatNumber(batchKg, 3)} كجم جليز أساسي` : `= ${formatNumber(g)} جم من ${formatNumber(batchKg, 3)} كجم جليز أساسي`
+                })()}
+              </p>
+            )}
           </div>
         ))}
         {rows.length === 0 && <div className="py-4 text-center text-sm text-faint">لسه ما ضفتش مكونات</div>}
@@ -146,6 +164,12 @@ export default function ComponentsEditor({ rows, onChange, suggestions, recipes,
             {liquids.map((l) => `${formatNumber(l.amount)} ${l.unit === 'l' ? 'لتر' : 'مل'}`).join(' + ')}
           </span>
         </div>
+      )}
+
+      {hasPercent && (
+        <p className="rounded-xl bg-tint px-3 py-2 text-xs text-mute">
+          النسبة المئوية بتتحسب من <b>كمية الجليز الأساسي</b> ({batchKg > 0 ? `${formatNumber(batchKg, 3)} كجم` : 'لسه ما اتكتبتش'}). مجموع النسب: <b className="tabular-nums">{formatNumber(percentSum, 3)}%</b>
+        </p>
       )}
 
       {recipes.length > 0 && (

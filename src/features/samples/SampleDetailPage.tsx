@@ -8,6 +8,7 @@ import { getRecipe } from '../recipes/api'
 import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, PageTitle, Spinner, StatusBadge, STATUS_LABELS, SectionTitle } from '../../components/ui'
 import { Icon, type IconName } from '../../components/Icon'
+import { InlineSpinner } from '../../components/Loader'
 import { useToast } from '../../components/Toast'
 import { sampleFormUrl } from '../../lib/quickEntry'
 import { listComponents } from './api'
@@ -104,18 +105,15 @@ export default function SampleDetailPage() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <button
-          type="button"
-          className="btn-secondary !px-3 !py-2"
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <ActionTile
+          icon="print"
+          label="طباعة PDF"
           onClick={() => printDocument(`${s.code}${s.recipe ? ` - ${s.recipe.name}` : ''}`)}
-        >
-          <Icon name="print" size={16} />
-          طباعة PDF
-        </button>
-        <button
-          type="button"
-          className="btn-ghost !px-3 !py-2"
+        />
+        <ActionTile
+          icon="share"
+          label="رسالة لجروب المعمل"
           onClick={async () =>
             setWaNote(
               await copyAndOpenGroup(
@@ -128,24 +126,24 @@ export default function SampleDetailPage() {
               ),
             )
           }
-        >
-          <Icon name="share" size={16} />
-          نسخ الرسالة وفتح جروب المعمل
-        </button>
+        />
         {canWrite && (
-          <Link
+          <ActionTile
+            icon="copy"
+            label="نسخ كعينة جديدة"
             to={sampleFormUrl({ from: s.id, recipeId: s.recipe_id, kg: s.batch_kg, temp: s.firing_temp, method: s.application_method, body: s.body_type })}
-            className="btn-ghost !px-3 !py-2"
-          >
-            <Icon name="copy" size={16} />
-            نسخ كعينة جديدة
-          </Link>
+          />
         )}
-        <button type="button" className="text-xs text-faint underline" onClick={() => { clearGroupLink(); setWaNote('اتمسح رابط الجروب من الجهاز') }}>
-          تغيير الجروب
-        </button>
-        {waNote && <span className="text-xs text-mute">{waNote}</span>}
+        {canWrite && (components.data?.length ?? 0) > 0 && (
+          <ActionTile icon="flask" label="إضافة للتركيبات" to={`/recipes/new?fromSample=${s.id}`} accent />
+        )}
       </div>
+      <p className="-mt-2 text-xs text-faint">
+        {waNote ? `${waNote} · ` : ''}
+        <button type="button" className="underline" onClick={() => { clearGroupLink(); setWaNote('اتمسح رابط الجروب من الجهاز') }}>
+          تغيير جروب المعمل
+        </button>
+      </p>
 
       <div className="grid gap-4 lg:grid-cols-5 lg:items-start">
         <div className="space-y-4 lg:col-span-2">
@@ -171,12 +169,14 @@ export default function SampleDetailPage() {
                 <StatusBadge status={s.status} />
               )}
             </div>
-            <Row icon="weight" label="كمية الجليز الأساسي" value={`${s.batch_kg} كجم`} />
-            <Row icon="vase" label="نوع البدن" value={s.body_type} />
-            <Row icon="thermometer" label="درجة الحرق" value={s.firing_temp ? `${s.firing_temp}°م` : null} />
-            <Row icon="calendar" label="تاريخ الحرق" value={s.firing_date} />
-            <Row icon="brush" label="طريقة التطبيق" value={s.application_method} />
-            <Row icon="clock" label="تاريخ التسجيل" value={new Date(s.created_at).toLocaleDateString('en-GB')} />
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-3">
+              <Row icon="weight" label="الجليز الأساسي" value={`${formatNumber(s.batch_kg, 3)} كجم`} />
+              <Row icon="vase" label="نوع البدن" value={s.body_type} />
+              <Row icon="thermometer" label="درجة الحرق" value={s.firing_temp ? `${s.firing_temp}°م` : null} />
+              <Row icon="calendar" label="تاريخ الحرق" value={s.firing_date} />
+              <Row icon="brush" label="طريقة التطبيق" value={s.application_method} />
+              <Row icon="clock" label="تاريخ التسجيل" value={new Date(s.created_at).toLocaleDateString('en-GB')} />
+            </div>
             {s.notes && (
               <div className="flex items-start gap-2 border-t border-line pt-2 text-mute">
                 <Icon name="fileText" size={15} className="mt-0.5 shrink-0 text-faint" />
@@ -198,16 +198,16 @@ export default function SampleDetailPage() {
                       {i + 1}
                     </span>
                     <span className="min-w-0 flex-1 truncate font-medium">{c.material}</span>
-                    <span className="shrink-0 font-bold tabular-nums text-brand-800">{formatComponent(c.amount, c.unit)}</span>
+                    <span className="shrink-0 font-bold tabular-nums text-brand-800">{formatComponent(c.amount, c.unit, s.batch_kg)}</span>
                   </li>
                 ))}
               </ol>
-              {totalWeightGrams(components.data) > 0 && (
+              {totalWeightGrams(components.data, s.batch_kg) > 0 && (
                 <div className="flex items-center justify-between rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">
                   <span>إجمالي الوزن</span>
                   <span className="font-bold tabular-nums">
-                    {formatNumber(totalWeightGrams(components.data))} جم
-                    {totalWeightGrams(components.data) >= 1000 && ` (${formatNumber(totalWeightGrams(components.data) / 1000, 3)} كجم)`}
+                    {formatNumber(totalWeightGrams(components.data, s.batch_kg))} جم
+                    {totalWeightGrams(components.data, s.batch_kg) >= 1000 && ` (${formatNumber(totalWeightGrams(components.data, s.batch_kg) / 1000, 3)} كجم)`}
                   </span>
                 </div>
               )}
@@ -245,7 +245,10 @@ export default function SampleDetailPage() {
                   onClick={() => fileInput.current?.click()}
                 >
                   {upload.isPending ? (
-                    'جاري رفع الصورة...'
+                    <>
+                      <InlineSpinner />
+                      بنرفع الصورة
+                    </>
                   ) : (
                     <>
                       <Icon name="camera" size={18} />
@@ -257,7 +260,7 @@ export default function SampleDetailPage() {
               </>
             )}
 
-            {results.isLoading && <Spinner />}
+            {results.isLoading && <Spinner compact />}
             {results.error && <ErrorBox error={results.error} />}
             {results.data && results.data.length === 0 && (
               <div className="card py-8 text-center text-sm text-mute">لسه مفيش صور لهذه العينة</div>
@@ -293,12 +296,45 @@ export default function SampleDetailPage() {
 
 function Row({ label, value, icon }: { label: string; value: string | null; icon?: IconName }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="flex items-center gap-2 text-mute">
-        {icon && <Icon name={icon} size={15} className="shrink-0 text-faint" />}
+    <div className="min-w-0">
+      <div className="flex items-center gap-1.5 text-xs text-faint">
+        {icon && <Icon name={icon} size={13} className="shrink-0" />}
         {label}
-      </span>
-      <span className="font-medium text-ink">{value || '—'}</span>
+      </div>
+      <div className="mt-0.5 truncate text-sm font-bold text-ink">{value || '—'}</div>
     </div>
+  )
+}
+
+function ActionTile({
+  icon,
+  label,
+  onClick,
+  to,
+  accent,
+}: {
+  icon: IconName
+  label: string
+  onClick?: () => void
+  to?: string
+  accent?: boolean
+}) {
+  const cls = `action-tile ${accent ? 'action-tile-accent' : ''}`
+  const inner = (
+    <>
+      <span className="action-tile-icon">
+        <Icon name={icon} size={18} />
+      </span>
+      <span className="min-w-0 truncate">{label}</span>
+    </>
+  )
+  return to ? (
+    <Link to={to} className={cls}>
+      {inner}
+    </Link>
+  ) : (
+    <button type="button" className={cls} onClick={onClick}>
+      {inner}
+    </button>
   )
 }
