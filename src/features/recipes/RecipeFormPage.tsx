@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRecipe, listRecipes, saveRecipe, type IngredientInput } from './api'
 import { getSample, listComponents } from '../samples/api'
@@ -7,6 +7,8 @@ import { useAuth } from '../auth/AuthProvider'
 import { ErrorBox, Field, PageTitle, Spinner, SectionTitle } from '../../components/ui'
 import { Icon } from '../../components/Icon'
 import { InlineSpinner } from '../../components/Loader'
+import RecipeAiInput from '../../components/RecipeAiInput'
+import type { FormDraft } from '../../lib/recipeDraft'
 import { nextRecipeCode, RECIPE_TYPE_LABELS } from '../../lib/codes'
 import { componentGrams, formatNumber, parseNumber } from '../../lib/units'
 import { useToast } from '../../components/Toast'
@@ -63,6 +65,40 @@ export default function RecipeFormPage() {
   const [notes, setNotes] = useState('')
   const [rows, setRows] = useState<IngredientRow[]>([newRow()])
   const [formError, setFormError] = useState<string | null>(null)
+
+  // ===== إدخال بالمساعد: المسودة بتملا النموذج فقط، والحفظ بإيدك =====
+  const location = useLocation()
+  const [aiOpen, setAiOpen] = useState(false)
+  const [aiInfo, setAiInfo] = useState<FormDraft | null>(null)
+
+  function applyAiDraft(d: FormDraft) {
+    // نملا كل الحقول (حتى الفاضي) عشان ما يفضلش شيء قديم من تعديل سابق
+    setName(d.name)
+    if (d.type) setType(d.type)
+    const t = d.type ?? type
+    setBasis(d.basis ?? (t === 'matte' || t === 'white' ? 'percent' : 'per_kg'))
+    setBatchKg(d.batchKg)
+    setDensity(d.density)
+    setNotes(d.notes)
+    setCodeTouched(false)
+    setRows(
+      d.rows.length > 0
+        ? d.rows.map((r) => ({ key: crypto.randomUUID(), material: r.material, amount: r.amount, batch: r.batch }))
+        : [newRow()],
+    )
+    setFormError(null)
+    setAiInfo(d)
+    setAiOpen(false)
+  }
+
+  // مسودة جاية من المساعد العائم (من أي صفحة): نطبّقها مرة واحدة وننضف حالة التنقل
+  useEffect(() => {
+    const d = (location.state as { aiDraft?: FormDraft } | null)?.aiDraft
+    if (!d || isEdit) return
+    applyAiDraft(d)
+    navigate(location.pathname + location.search, { replace: true, state: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   // تعبئة النموذج عند التعديل
   useEffect(() => {
@@ -212,6 +248,47 @@ export default function RecipeFormPage() {
         ))}
       </datalist>
       <PageTitle icon="flask" title={isEdit ? 'تعديل التركيبة' : 'تركيبة جديدة'} />
+
+      {!isEdit && (
+        <details className="card" open={aiOpen} onToggle={(e) => setAiOpen((e.target as HTMLDetailsElement).open)}>
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-violet-800">
+            <Icon name="sparkles" size={16} />
+            إدخال بالمساعد: اكتب أو قُل التركيبة وهو يملا النموذج
+          </summary>
+          <div className="mt-3">
+            <RecipeAiInput materials={materials} applyLabel="املأ النموذج بالمسودة" onApply={applyAiDraft} />
+          </div>
+        </details>
+      )}
+
+      {aiInfo && (
+        <div className="pop-in space-y-1.5 rounded-2xl border border-violet-200 bg-violet-50/60 p-3 text-sm">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 font-bold text-violet-800">
+              <Icon name="sparkles" size={16} />
+              مسودة من المساعد: راجع كل اسم ورقم قبل الحفظ
+            </span>
+            <button type="button" className="text-xs font-bold text-mute" onClick={() => setAiInfo(null)}>
+              إخفاء
+            </button>
+          </div>
+          {aiInfo.rows.some((r) => r.match === 'close') && (
+            <p className="text-xs leading-relaxed text-mute">
+              اتصحّح للاسم المعروف: {aiInfo.rows.filter((r) => r.match === 'close').map((r) => `${r.original} ← ${r.material}`).join('، ')}
+            </p>
+          )}
+          {aiInfo.rows.some((r) => r.match === 'new') && (
+            <p className="text-xs leading-relaxed text-mute">
+              خامات جديدة مش في القائمة: {aiInfo.rows.filter((r) => r.match === 'new').map((r) => r.material).join('، ')}
+            </p>
+          )}
+          {aiInfo.warnings.map((w, i) => (
+            <p key={i} className="text-xs leading-relaxed text-amber-800">
+              {w}
+            </p>
+          ))}
+        </div>
+      )}
 
       {fromInfo && (
         <div className="pop-in flex items-start gap-3 rounded-2xl border border-line bg-brand-50 p-3 text-sm text-brand-900">
