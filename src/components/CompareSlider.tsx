@@ -19,6 +19,7 @@ export default function CompareSlider({
   const a = useQuery({ queryKey: ['signed-url', pathA], queryFn: () => getSignedUrl(pathA), staleTime: 30 * 60 * 1000 })
   const b = useQuery({ queryKey: ['signed-url', pathB], queryFn: () => getSignedUrl(pathB), staleTime: 30 * 60 * 1000 })
 
+  if (a.isError || b.isError) return null
   if (!a.data || !b.data) return <div className="skeleton h-64" />
 
   return (

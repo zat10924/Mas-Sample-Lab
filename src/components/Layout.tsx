@@ -12,6 +12,7 @@ import Breadcrumbs from './Breadcrumbs'
 import CommandPalette from './CommandPalette'
 import SettingsMenu from './SettingsMenu'
 import OfflineStatus from './OfflineStatus'
+import OfflineSync from './OfflineSync'
 import NotificationBell from './NotificationBell'
 import QuickCreateSheet from './QuickCreateSheet'
 import PhotoCaptureSheet from './PhotoCaptureSheet'
@@ -256,6 +257,7 @@ export default function Layout() {
         }`}
       >
         <div className="mx-auto lg:max-w-6xl lg:px-10 lg:py-10">
+          <OfflineSync />
           <OfflineStatus />
           <Breadcrumbs />
           <div key={location.pathname} className="page-enter">

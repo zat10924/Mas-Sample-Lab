@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { compressImage } from '../../lib/image'
 import { callFunction } from '../../lib/functions'
+import { cacheImage, cachedImageUrl } from '../../lib/imageCache'
 import { buildResultCode } from '../../lib/codes'
 import type {
   ColorMatch,
@@ -180,9 +181,22 @@ export async function addResultImage(sampleId: string, file: File): Promise<Samp
 }
 
 export async function getSignedUrl(path: string): Promise<string> {
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600)
-  if (error) throw error
-  return data.signedUrl
+  // بدون نت: نستخدم النسخة المحلية من الصورة لو موجودة
+  if (!navigator.onLine) {
+    const local = await cachedImageUrl(path)
+    if (local) return local
+    throw new Error('الصورة مش متاحة بدون إنترنت')
+  }
+  try {
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600)
+    if (error) throw error
+    void cacheImage(path, data.signedUrl) // نخزّن نسخة في الخلفية للعمل بدون نت
+    return data.signedUrl
+  } catch (e) {
+    const local = await cachedImageUrl(path)
+    if (local) return local
+    throw e
+  }
 }
 
 export async function analyzeResult(resultId: string): Promise<void> {

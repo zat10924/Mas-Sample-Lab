@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_MAIN_APP_URL?: string
   /** 'true' = إرسال تلقائي لجروب واتساب بعد اعتماد النتيجة (يحتاج دالة lab-whatsapp) */
   readonly VITE_WHATSAPP_AUTO?: string
+  /** الرابط العام للمختبر (للمشاركة من تطبيق الموبايل) */
+  readonly VITE_PUBLIC_URL?: string
 }
 
 interface ImportMeta {

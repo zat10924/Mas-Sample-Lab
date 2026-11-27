@@ -1,3 +1,4 @@
+import { appBaseUrl } from './appUrl'
 import { supabase } from './supabase'
 import { describeResultCode } from './codes'
 import type { SampleComponent, SampleDetail } from '../types/db'
@@ -40,7 +41,7 @@ export async function notifyReview(resultId: string): Promise<void> {
   if (!WHATSAPP_AUTO) return
   try {
     await supabase.functions.invoke('lab-whatsapp', {
-      body: { result_id: resultId, app_url: window.location.origin + window.location.pathname },
+      body: { result_id: resultId, app_url: appBaseUrl() },
     })
   } catch (e) {
     console.warn('WhatsApp notify failed', e)

@@ -3,6 +3,7 @@ import PrintSheet from '../../components/PrintSheet'
 import QrCode from '../../components/QrCode'
 import { STATUS_LABELS } from '../../components/ui'
 import { describeResultCode } from '../../lib/codes'
+import { appBaseUrl } from '../../lib/appUrl'
 import { formatComponent, formatGrams, formatNumber, ingredientGrams, totalWeightGrams } from '../../lib/units'
 import { getSignedUrl } from './api'
 import type { RecipeWithIngredients, SampleComponent, SampleDetail, SampleResult } from '../../types/db'
@@ -33,7 +34,7 @@ export default function SamplePrint({
       <div className="print-titlerow">
         <h1 className="print-title">{s.recipe ? `${s.recipe.name} (${s.recipe.code})` : 'عينة بمكونات مخصصة'}</h1>
         <div className="print-qr">
-          <QrCode value={`${window.location.origin}${window.location.pathname}#/samples/${s.id}`} size={74} />
+          <QrCode value={`${appBaseUrl()}#/samples/${s.id}`} size={74} />
           <span>امسح لفتح العينة</span>
         </div>
       </div>

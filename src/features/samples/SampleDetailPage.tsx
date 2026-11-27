@@ -12,6 +12,7 @@ import { Icon, type IconName } from '../../components/Icon'
 import { InlineSpinner } from '../../components/Loader'
 import { useToast } from '../../components/Toast'
 import { sampleFormUrl } from '../../lib/quickEntry'
+import { currentPageUrl } from '../../lib/appUrl'
 import { listComponents } from './api'
 import { formatComponent, formatNumber, totalWeightGrams } from '../../lib/units'
 import { buildSampleMessage, clearGroupLink, copyAndOpenGroup, shareToWhatsApp } from '../../lib/whatsapp'
@@ -110,7 +111,7 @@ export default function SampleDetailPage() {
                   buildSampleMessage(
                     s,
                     (results.data ?? []).find((r) => r.final_code)?.final_code ?? null,
-                    window.location.href,
+                    currentPageUrl(),
                     components.data ?? [],
                   ),
                 )
@@ -144,7 +145,7 @@ export default function SampleDetailPage() {
                 buildSampleMessage(
                   s,
                   (results.data ?? []).find((r) => r.final_code)?.final_code ?? null,
-                  window.location.href,
+                  currentPageUrl(),
                   components.data ?? [],
                 ),
               ),

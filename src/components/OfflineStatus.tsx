@@ -5,6 +5,12 @@ import { countQueued, flushQueue, QUEUE_EVENT } from '../lib/photoQueue'
 import { useOnline } from '../lib/useOnline'
 import { useToast } from './Toast'
 import { Icon } from './Icon'
+import { readPref } from '../lib/prefs'
+
+function lastSyncText(): string {
+  const t = readPref<number>('lab-last-sync', 0)
+  return t ? ` (آخر تحديث ${new Date(t).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })})` : ''
+}
 
 /** شريط حالة الاتصال + رفع الصور المتخزنة تلقائيًا لما النت يرجع */
 export default function OfflineStatus() {
@@ -58,7 +64,7 @@ export default function OfflineStatus() {
       <span>
         {online
           ? `بنرفع ${pending} صورة كانت مستنية النت…`
-          : `مفيش إنترنت: بتشوف آخر بيانات اتحمّلت. الصور اللي هتصوّرها هتتحفظ على الجهاز وتترفع لوحدها لما النت يرجع${
+          : `مفيش إنترنت: بتشتغل على آخر نسخة محفوظة${lastSyncText()}. الصور اللي هتصوّرها هتتحفظ على الجهاز وتترفع لوحدها لما النت يرجع${
               hasPending ? ` (${pending} مستنية)` : ''
             }.`}
       </span>
