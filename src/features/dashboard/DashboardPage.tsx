@@ -14,6 +14,7 @@ import { finalCodeOf } from '../../lib/stats'
 import { downloadCsv, printDocument } from '../../lib/export'
 import { formatComponent } from '../../lib/units'
 import DashboardPrint from './DashboardPrint'
+import ActivityTimeline from './ActivityTimeline'
 import type { SampleListItem } from '../../types/db'
 
 /** عدد الأيام اللي بعدها العينة المحروقة تعتبر متأخرة في التقييم */
@@ -168,6 +169,8 @@ export default function DashboardPage() {
           <Stat label="محروقة (محتاجة تقييم)" value={totals.fired} tone="bg-amber-100 text-amber-700" icon="flame" />
         </div>
       )}
+
+      <ActivityTimeline />
 
       {analytics && analytics.total > 0 && (
         <section className="space-y-3">

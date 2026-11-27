@@ -58,7 +58,7 @@ export function PageTitle({
   icon?: IconName
 }) {
   return (
-    <div className="mb-4 flex items-start justify-between gap-3 lg:mb-6">
+    <div className="page-head -mx-4 mb-4 flex items-start justify-between gap-3 px-4 py-2 lg:-mx-2 lg:mb-6 lg:px-2">
       <div className="flex min-w-0 items-center gap-3">
         {icon && <IconBadge name={icon} size={22} box="h-11 w-11" />}
         <div className="min-w-0">

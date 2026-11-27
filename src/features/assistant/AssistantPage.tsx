@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Icon } from '../../components/Icon'
 import { callFunction } from '../../lib/functions'
 import { errorMessage, PageTitle } from '../../components/ui'
+import MicButton from '../../components/MicButton'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -107,6 +108,7 @@ export default function AssistantPage() {
           onChange={(e) => setInput(e.target.value)}
           maxLength={2000}
         />
+        <MicButton onText={(t) => setInput(t)} />
         <button type="submit" className="btn-primary shrink-0" disabled={busy || !input.trim()}>
             <Icon name="send" size={16} />
             إرسال

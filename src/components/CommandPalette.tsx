@@ -7,6 +7,9 @@ import { useAuth } from '../features/auth/AuthProvider'
 import { Icon, type IconName } from './Icon'
 import { finalCodeOf } from '../lib/stats'
 import { parseQuickEntry, sampleFormUrl } from '../lib/quickEntry'
+import { useRecents } from '../lib/organize'
+import { useFavorites } from '../lib/shared'
+import MicButton from './MicButton'
 
 interface Item {
   id: string
@@ -19,12 +22,14 @@ interface Item {
 }
 
 /** بحث شامل + مساعد إدخال سريع. بيفتح بـ Ctrl+K أو من زرار البحث */
-export default function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function CommandPalette({ open, onClose, voice = false }: { open: boolean; onClose: () => void; voice?: boolean }) {
   const navigate = useNavigate()
   const { canWrite } = useAuth()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const favorites = useFavorites()
+  const recents = useRecents()
 
   const samples = useQuery({ queryKey: ['samples'], queryFn: () => listSamples(), enabled: open })
   const recipes = useQuery({ queryKey: ['recipes'], queryFn: listRecipes, enabled: open })
@@ -53,6 +58,26 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
       }
       out.push({ id: 'a-compare', group: 'إجراءات سريعة', label: 'مقارنة', icon: 'compare', run: () => go('/compare') })
       out.push({ id: 'a-ai', group: 'إجراءات سريعة', label: 'المساعد الذكي', icon: 'sparkles', run: () => go('/assistant') })
+      const favRecipes = (recipes.data ?? []).filter((r) => favorites.has(r.id)).slice(0, 5)
+      for (const r of favRecipes) {
+        out.push({
+          id: `f-${r.id}`,
+          group: 'المفضّلة',
+          label: `${r.code} · ${r.name}`,
+          icon: 'star',
+          run: () => go(`/recipes/${r.id}`),
+        })
+      }
+      for (const path of recents.slice(0, 5)) {
+        const [, kind, rid] = path.split('/')
+        if (kind === 'samples') {
+          const s = (samples.data ?? []).find((x) => x.id === rid)
+          if (s) out.push({ id: `rc-${path}`, group: 'آخر ما فتحته', label: s.code, sub: s.recipe?.name ?? undefined, icon: 'history', run: () => go(path) })
+        } else if (kind === 'recipes') {
+          const r = (recipes.data ?? []).find((x) => x.id === rid)
+          if (r) out.push({ id: `rc-${path}`, group: 'آخر ما فتحته', label: `${r.code} · ${r.name}`, icon: 'history', run: () => go(path) })
+        }
+      }
       for (const s of (samples.data ?? []).slice(0, 4)) {
         out.push({
           id: `s-${s.id}`,
@@ -140,7 +165,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
       })
     }
     return out
-  }, [query, samples.data, recipes.data, canWrite]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [query, samples.data, recipes.data, canWrite, favorites.ids, recents]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => setActive(0), [query])
 
@@ -181,6 +206,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <MicButton autoStart={voice} onText={(t) => setQuery(t)} />
           <button type="button" onClick={onClose} className="shrink-0 rounded-md bg-tint px-2 py-1 text-[11px] font-bold text-mute">
             Esc
           </button>

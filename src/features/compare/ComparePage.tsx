@@ -1,3 +1,4 @@
+import CompareSlider from '../../components/CompareSlider'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listRecipes, getRecipe } from '../recipes/api'
@@ -194,6 +195,8 @@ function SampleCompare({ a, b }: { a: SampleDetail; b: SampleDetail }) {
           </div>
         </div>
       </div>
+
+      {resA && resB && <CompareSlider pathA={resA.image_path} pathB={resB.image_path} labelA={a.code} labelB={b.code} />}
 
       {((ca.data?.length ?? 0) > 0 || (cb.data?.length ?? 0) > 0) && (
         <div className="card divide-y divide-line !p-0">
