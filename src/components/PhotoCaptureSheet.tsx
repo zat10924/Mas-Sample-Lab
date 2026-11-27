@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { addResultImage, analyzeResult, listSamples } from '../features/samples/api'
+import { addResultImage, listSamples } from '../features/samples/api'
 import { enqueuePhoto } from '../lib/photoQueue'
 import { finalCodeOf } from '../lib/stats'
 import { Icon } from './Icon'
@@ -56,11 +56,7 @@ export default function PhotoCaptureSheet({ open, onClose }: { open: boolean; on
         return
       }
       const saved = await addResultImage(id, file)
-      try {
-        await analyzeResult(saved.id)
-      } catch {
-        // التحليل اختياري: تقدر تشغّله من صفحة العينة
-      }
+      void saved // التحليل بالذكاء الاصطناعي متوقف في هذه المرحلة
       await queryClient.invalidateQueries({ queryKey: ['samples'] })
       await queryClient.invalidateQueries({ queryKey: ['sample', id] })
       await queryClient.invalidateQueries({ queryKey: ['results'] })

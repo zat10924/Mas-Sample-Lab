@@ -26,7 +26,8 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'التحليل',
     items: [
       { to: '/compare', label: 'المقارنة', icon: 'compare' },
-      { to: '/assistant', label: 'المساعد الذكي', icon: 'sparkles' },
+      { to: '/assistant', label: 'المساعد', icon: 'sparkles' },
+      { to: '/knowledge', label: 'المعرفة', icon: 'layers' },
     ],
   },
   {
@@ -35,7 +36,7 @@ export const NAV_SECTIONS: NavSection[] = [
   },
 ]
 
-export const MORE_PATHS = ['/compare', '/assistant', '/access']
+export const MORE_PATHS = ['/compare', '/assistant', '/knowledge', '/access']
 
 const SECTION_LABEL: Record<string, string> = {
   recipes: 'التركيبات',

@@ -5,7 +5,6 @@ import { useToast } from '../../components/Toast'
 import { analyzeResult, deleteResult, getSignedUrl, saveReview } from './api'
 import { ErrorBox } from '../../components/ui'
 import { Icon } from '../../components/Icon'
-import { InlineSpinner } from '../../components/Loader'
 import {
   buildResultCode,
   COLOR_OPTIONS,
@@ -132,24 +131,9 @@ export default function ResultCard({
         </div>
       ) : (
         canWrite && (
-          <button
-            type="button"
-            className="btn-secondary w-full"
-            disabled={analyze.isPending}
-            onClick={() => analyze.mutate()}
-          >
-            {analyze.isPending ? (
-              <>
-                <InlineSpinner />
-                بنحلل الصورة (10-20 ثانية)
-              </>
-            ) : (
-              <>
-                <Icon name="sparkles" size={18} />
-                حلل الصورة بالذكاء الاصطناعي
-              </>
-            )}
-          </button>
+          <div className="rounded-xl border border-line bg-tint p-3 text-xs text-faint">
+            تحليل الصور بالذكاء الاصطناعي متوقف في هذه المرحلة (لا اتصال بأي مزود خارجي). استخدم التقييم اليدوي أدناه.
+          </div>
         )
       )}
       {analyze.error && <ErrorBox error={analyze.error} />}

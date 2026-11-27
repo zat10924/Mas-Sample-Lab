@@ -15,6 +15,10 @@ import SamplesPage from './features/samples/SamplesPage'
 import SampleDetailPage from './features/samples/SampleDetailPage'
 import SampleFormPage from './features/samples/SampleFormPage'
 import AssistantPage from './features/assistant/AssistantPage'
+import KnowledgePage from './features/knowledge/KnowledgePage'
+import ChapterPage from './features/knowledge/ChapterPage'
+import ExperiencesPage from './features/knowledge/ExperiencesPage'
+import ExperienceDetailPage from './features/knowledge/ExperienceDetailPage'
 import ComparePage from './features/compare/ComparePage'
 import AccessPage from './features/access/AccessPage'
 
@@ -82,6 +86,10 @@ export default function App() {
         <Route path="/samples/:id/edit" element={<SampleFormPage />} />
         <Route path="/compare" element={<ComparePage />} />
         <Route path="/assistant" element={<AssistantPage />} />
+        <Route path="/knowledge" element={<KnowledgePage />} />
+        <Route path="/knowledge/chapter/:id" element={<ChapterPage />} />
+        <Route path="/knowledge/experiences" element={<ExperiencesPage />} />
+        <Route path="/knowledge/experiences/:id" element={<ExperienceDetailPage />} />
         <Route path="/access" element={<AccessPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
