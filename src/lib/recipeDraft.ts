@@ -52,6 +52,8 @@ export function normalizeName(s: string): string {
   return s
     .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
     .replace(/[أإآٱ]/g, 'ا')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي')
     .replace(/ى/g, 'ي')
     .replace(/ة/g, 'ه')
     .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
@@ -60,7 +62,7 @@ export function normalizeName(s: string): string {
     .toLowerCase()
 }
 
-function editDistance(a: string, b: string): number {
+export function editDistance(a: string, b: string): number {
   if (a === b) return 0
   if (Math.abs(a.length - b.length) > 2) return 3
   const prev = Array.from({ length: b.length + 1 }, (_, j) => j)

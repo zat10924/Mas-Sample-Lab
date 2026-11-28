@@ -13,6 +13,7 @@ import { finalCodeOf } from '../../lib/stats'
 import { parseResultCode } from '../../lib/codes'
 import type { SampleListItem } from '../../types/db'
 import { RECIPE_TYPE_LABELS } from '../../lib/codes'
+import { searchRecipes } from '../../lib/recipeSearch'
 
 type Filter = 'all' | 'glaze_color' | 'matte_white' | 'other' | 'fav' | `col:${string}`
 type Sort = 'code' | 'name' | 'ingredients'
@@ -51,28 +52,38 @@ export default function RecipesPage() {
     return m
   }, [samples.data])
 
-  const items = useMemo(() => {
-    const q = search.trim().toLowerCase()
+  const { items, reasons, relaxed, excluded } = useMemo(() => {
+    const q = search.trim()
     const list = (data ?? []).filter((r) => {
       if (filter === 'glaze_color' && r.type !== 'glaze_color') return false
       if (filter === 'matte_white' && r.type !== 'matte' && r.type !== 'white') return false
       if (filter === 'other' && ['glaze_color', 'matte', 'white'].includes(r.type)) return false
       if (filter === 'fav' && !favorites.has(r.id)) return false
       if (filter.startsWith('col:') && collections.map[r.id] !== filter.slice(4)) return false
-      if (!q) return true
-      return (
-        r.name.toLowerCase().includes(q) ||
-        r.code.toLowerCase().includes(q) ||
-        r.ingredients.some((i) => i.material.toLowerCase().includes(q))
-      )
+      return true
     })
+    // بحث ذكي: يتجاهل الهمزات ويتحمّل الغلط ويفهم المرادفات والخامات والنفي، ويرتّب بالأقرب
+    if (q) {
+      const res = searchRecipes(list, q)
+      return {
+        items: res.hits.map((h) => h.item),
+        reasons: new Map<string, string[]>(res.hits.map((h): [string, string[]] => [h.item.id, h.reasons])),
+        relaxed: res.relaxed,
+        excluded: res.excluded,
+      }
+    }
     const sorted = [...list].sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name, 'ar')
       if (sort === 'ingredients') return b.ingredients.length - a.ingredients.length
       return a.code.localeCompare(b.code)
     })
     // المفضّلة في أول القائمة
-    return [...sorted.filter((r) => favorites.has(r.id)), ...sorted.filter((r) => !favorites.has(r.id))]
+    return {
+      items: [...sorted.filter((r) => favorites.has(r.id)), ...sorted.filter((r) => !favorites.has(r.id))],
+      reasons: new Map<string, string[]>(),
+      relaxed: false,
+      excluded: [] as string[],
+    }
   }, [data, search, filter, sort, favorites.ids, collections.map]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -90,7 +101,7 @@ export default function RecipesPage() {
         }
       />
 
-      <SearchBox className="mb-3 lg:max-w-md" placeholder="ابحث بالاسم أو الكود أو اسم خامة..." value={search} onChange={setSearch} />
+      <SearchBox className="mb-3 lg:max-w-md" placeholder="اكتب زي ما تقول: جليز أخضر فاتح، اللي فيها كوبلت، مط بدون فريت..." value={search} onChange={setSearch} />
 
       <div className="mb-4 flex items-center gap-2">
        <div className="flex flex-1 gap-2 overflow-x-auto pb-1">
@@ -152,7 +163,13 @@ export default function RecipesPage() {
 
       {isLoading && <ListSkeleton />}
       {error && <ErrorBox error={error} />}
-      {!isLoading && !error && items.length === 0 && <Empty text="مفيش تركيبات مطابقة" />}
+      {!isLoading && !error && items.length === 0 && <Empty text="مفيش تركيبات مطابقة. جرّب كلمة أبسط، أو اسم الخامة أو اللون بس." />}
+      {search.trim() && items.length > 0 && (relaxed || excluded.length > 0) && (
+        <p className="mb-3 rounded-xl bg-tint px-3 py-2 text-xs leading-relaxed text-mute">
+          {relaxed && 'مفيش تركيبة بتطابق كل كلماتك، دي أقرب النتائج. '}
+          {excluded.length > 0 && `مستبعد: ${excluded.join('، ')}`}
+        </p>
+      )}
 
       <div className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((r) => (
@@ -205,6 +222,9 @@ export default function RecipesPage() {
                 </div>
               </div>
             </div>
+            {(reasons.get(r.id)?.length ?? 0) > 0 && (
+              <div className="mt-2 text-xs font-bold text-violet-800">تطابق: {(reasons.get(r.id) ?? []).slice(0, 2).join(' · ')}</div>
+            )}
             {r.ingredients.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5 border-t border-line pt-2.5">
                 {r.ingredients.slice(0, 4).map((i) => (

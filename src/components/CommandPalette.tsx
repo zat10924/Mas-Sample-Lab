@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listSamples } from '../features/samples/api'
 import { listRecipes } from '../features/recipes/api'
+import { searchRecipes } from '../lib/recipeSearch'
 import { useAuth } from '../features/auth/AuthProvider'
 import { Icon, type IconName } from './Icon'
 import { finalCodeOf } from '../lib/stats'
@@ -135,21 +136,15 @@ export default function CommandPalette({ open, onClose, voice = false }: { open:
       })
     }
 
-    const rm = (recipes.data ?? [])
-      .filter(
-        (r) =>
-          r.code.toLowerCase().includes(q) ||
-          r.name.toLowerCase().includes(q) ||
-          r.ingredients.some((i) => i.material.toLowerCase().includes(q)),
-      )
-      .slice(0, 6)
-    for (const r of rm) {
-      const viaMaterial = !r.code.toLowerCase().includes(q) && !r.name.toLowerCase().includes(q)
+    // بحث ذكي في التركيبات (همزات، غلطات إملائية، مرادفات، خامات، نفي)
+    const rm = searchRecipes(recipes.data ?? [], query).hits.slice(0, 6)
+    for (const h of rm) {
+      const r = h.item
       out.push({
         id: `r-${r.id}`,
         group: 'التركيبات',
         label: `${r.code} · ${r.name}`,
-        sub: viaMaterial ? `فيها خامة مطابقة للبحث` : undefined,
+        sub: h.reasons[0],
         icon: 'flask',
         run: () => go(`/recipes/${r.id}`),
       })
